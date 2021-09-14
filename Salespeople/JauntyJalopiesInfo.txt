@@ -1,0 +1,56 @@
+
+*******************************
+Jaunty Jalopies
+Project 2021
+*******************************
+- Sales
+Vehicles are bought by customers via a salesperson. The list price is calculated as 125% of the
+invoice price, however, customers can negotiate and receive a lower price, which is recorded at
+the time of sale (the “sold price”). Market conditions may also enable a salesperson to sell a
+vehicle at a higher price. The system should store the details of customer who purchased the
+vehicle, and it’s possible (and good for business) that a buyer can purchase several vehicles.
+Should a buyer purchase several vehicles at the same time, they would still be handled as 
+CS 6400 – Team Project Fall 2021
+3
+separate sales transactions. The purchase date should be tracked to determine when a vehicle
+leaves inventory.
+***********************************
+
+tbl_Sale
+-saleID
+-VIN				FK on tbl_Vehicle
+-listPrice			on tbl_Vehicle
+-soldPrice			
+-saleDate
+-salesPerson		userName on tbl_User
+-customerID			on tbl_Customer
+
+
+
+Customer Relationship
+foreignKey to tbl_Customer
+
+Vehicle Relationship
+Foregin Key to listPrice
+Update table quantity on tbl_Vehicles
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
