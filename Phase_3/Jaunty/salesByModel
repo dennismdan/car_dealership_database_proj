@@ -1,0 +1,28 @@
+SELECT Model_name,
+    SUM(Labor_charges) AS All_labor_Costs,
+    SUM(Total_cost) AS Total_Repair_cost,
+    (SUM(Labor_charges) - SUM(Total_cost)) AS All_Parts_Costs,
+    COUNT(Start_date) AS Count_Repairs
+from (
+select 'Car' as VT
+UNION select 'SUV' as VT
+UNION select 'Truck' as VT
+UNION select 'Convertible' as VT
+UNION select 'VanMinivan' as VT
+) as UnionVt
+ JOIN (
+SELECT v.VIN,VehicleType.Vehicle_type,v.Model_name,r.Labor_charges,r.Total_cost,r.Start_date
+FROM Vehicle v
+LEFT JOIN (
+SELECT Car.VIN, 'Car' AS Vehicle_type FROM Car
+UNION	SELECT SUV.VIN, 'SUV' AS Vehicle_type FROM SUV
+UNION	SELECT Truck.VIN, 'Truck' AS Vehicle_type FROM Truck
+UNION	SELECT Convertible.VIN, 'Convertible' AS Vehicle_type FROM Convertible
+UNION	SELECT VanMinivan.VIN, 'VanMinivan' AS Vehicle_type FROM VanMinivan
+) AS VehicleType ON v.VIN= vehicleType.VIN
+ JOIN Repair r ON V.VIN=r.VIN
+WHERE Manufacturer_name =  'tesla'
+AND VehicleType.Vehicle_type = 'car'
+) AS repairs ON repairs.Vehicle_type = UnionVt.VT
+GROUP BY UnionVt.VT,Model_name
+ORDER BY Count_Repairs ASC;
