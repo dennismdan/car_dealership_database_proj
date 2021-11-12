@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+</head>
+<body>
+    <h1>main landing</h1>
+    {% for person in user_exprssions %}
+        <p>{{ person.name }} says {{ person.says }}</p>
+    {% endfor %}
+
+    <h1> Some sample data input </h1>
+    <table>
+        <tr>
+            {% for col in table.colnames %}
+                <th>{{ col }}</th>
+            {% endfor %}
+        </tr>
+        {% for row in table.data %}
+        <tr>
+            {% for cell in row %}
+            <td>{{ cell }}</td>
+            {% endfor %}
+        </tr>
+        {% endfor %}
+    </table>
+
+    <h1> Test with a button </h1>
+    <button onclick="location.href='{% url 'mainlanding.views.click_button' %}">Click me</button>
+</body>
+</html>
