@@ -1,0 +1,23 @@
+Add Customer
+
+User clicks Add Customer button.
+User enters phone ($phone), address ($address) and email ($email) in the input field.
+
+INSERT INTO Customer (phone_number, email, street_address, city, state, postal_code)
+VALUES ( '$phone_numer', '$email', '$street_address', '$city', '$state', '$postal_code')
+
+
+If CUSTOMER is Person, then
+User clicks on Individual button
+INSERT INTO  Person (driver_license, customer_id, first_name, last_name)
+VALUES ('$driver_license','$customer_id','$first_name', '$last_name');
+
+
+Else
+User clicks on Business button
+INSERT INTO Business(TIN, customer_id, contact_name, contact_title, Business_name)
+VALUES ('$TIN', '$customer_id', '$contact_name', '$contact_title', '$Business_name');
+
+
+User click Add button, the above query adds the new customer.
+
