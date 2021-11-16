@@ -6,6 +6,8 @@ https://djangobook.com/mdj2-django-forms/
 
 Dynamic Forms: 
 https://www.b-list.org/weblog/2008/nov/09/dynamic-forms/
+
+TODO: apply business constraints   
 '''
 
 class LoginForm(forms.Form):
@@ -15,13 +17,25 @@ class LoginForm(forms.Form):
 
 
 class QueryVehicleForm(forms.Form):
+   '''
+   TODO: right now color chices are hard coded
+   we want to retrieve these with a query pass as parameter
+   TODO: Vehicle type, manufacturer name, and model year, keyword is a drop down
+   '''
+
    color_choices = ((1,"green"),(2,"blue"),(3,"black"),(4,"white"))
-   vehicle_type = forms.CharField(max_length = 100)
+
+   vehicle_type = forms.CharField()
    manufacturer_name = forms.CharField()
    model_year = forms.DateField()
    color = forms.ChoiceField(choices=color_choices)
    list_price = forms.CharField()
-   keywords = forms.CharField(max_length = 100)
+   keywords = forms.CharField()
+
+   def clean_data(self):
+      pass
+
+
 
 
 class ReportTypes(forms.Form):

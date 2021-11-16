@@ -1,26 +1,44 @@
 from django.shortcuts import render
 from django.http import HttpResponseRedirect
 from .forms import LoginForm, QueryVehicleForm,ReportTypes
-
+from .utils import run_query, generate_query
 def home(request):
     view_inventory = False
+    data = []
+    header = []
+
     if request.method == 'POST':
         form = QueryVehicleForm(request.POST)
-        print(form)
-        if form.is_valid():
-            return HttpResponseRedirect('/home?view_inventory=True')
-        else:
-            form = QueryVehicleForm()
-            if 'view_inventory' in request.GET:
-                view_inventory = True
-                data = "TODO: run query function here to get data "
-    else:
-        print("form same as before")
-        form = QueryVehicleForm()
+        print("POST statement from home page")
+        user_input = form.data.dict()
+        query = generate_query(user_input)
+        data, header = run_query(query)
+    #
+    #     if form.is_valid():
+    #         # TODO: run the search vihicle query function
+    #         '''
+    #         query = generate_query(form.data)
+    #         data = run_query(query)
+    #         '''
+    #         #return HttpResponseRedirect('/home?view_inventory=True')
+    #     else:
+    #         '''
+    #         TODO: handle form when format doesn't match expectation
+    #         Copy error handling from bootstrap templates
+    #         '''
+    #         data = form.data.dict()
+    #     form = QueryVehicleForm()
+    # else:
+    #     print("welcome home")
+    #     form = QueryVehicleForm()
+
+    print("data: ", data)
+    print("header: ", header)
+
     return render(request,'mainlanding/home.html',
                   {'form': form,
-                   'view_inventory': view_inventory,
-                   'data':"None"})
+                    'data':data,
+                    'header':header})
 
 
 def base(request):
