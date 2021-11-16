@@ -1,32 +1,39 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>Title</title>
-</head>
-<body>
-    <h1>main landing</h1>
-    {% for person in user_exprssions %}
-        <p>{{ person.name }} says {{ person.says }}</p>
-    {% endfor %}
+{% extends "mainlanding/base.html" %}
 
-    <h1> Some sample data input </h1>
-    <table>
-        <tr>
-            {% for col in table.colnames %}
-                <th>{{ col }}</th>
-            {% endfor %}
-        </tr>
-        {% for row in table.data %}
-        <tr>
-            {% for cell in row %}
-            <td>{{ cell }}</td>
-            {% endfor %}
-        </tr>
-        {% endfor %}
-    </table>
+{% block style %}
+        .home {
+            color: #f5f5f5;
+            }
+        .add_vehicle {
+            color: #818181;
+            }
+        .reports {
+            color: #818181;
+            }
+        .repairs {
+            color: #818181;
+            }
+{% endblock %}
 
-    <h1> Test with a button </h1>
-    <button onclick="location.href='{% url 'mainlanding.views.click_button' %}">Click me</button>
-</body>
-</html>
+
+{% block title %} home {% endblock %}
+
+
+{% block search_vehicle %}
+
+{% endblock %}
+
+{% block content %}
+<button type="submit" onclick="location.href='{% url 'login' %}'" name='login'>Log In</button>
+<h1> Home - landing page</h1>
+
+<form name = "search_vehicle_form" action = "{% url 'home' %}" method = "POST" >{% csrf_token %}
+    {{ form.as_p }}
+    <button type="submit">Search Vehicle</button>
+</form>
+
+
+<p>{{ data }}</p>
+{% endblock %}
+
+
