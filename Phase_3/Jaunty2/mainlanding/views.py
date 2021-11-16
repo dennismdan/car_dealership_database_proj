@@ -2,6 +2,13 @@ from django.shortcuts import render
 from django.http import HttpResponseRedirect
 from .forms import LoginForm, QueryVehicleForm,ReportTypes
 from .utils import run_query, generate_query
+
+'''
+TODO: 
+list all business constraint 
+make sure that we implement ALL constraints in our code 
+'''
+
 def home(request):
     view_inventory = False
     data = []
@@ -13,6 +20,8 @@ def home(request):
         user_input = form.data.dict()
         query = generate_query(user_input)
         data, header = run_query(query)
+    else:
+        form = QueryVehicleForm()
     #
     #     if form.is_valid():
     #         # TODO: run the search vihicle query function
@@ -39,7 +48,6 @@ def home(request):
                   {'form': form,
                     'data':data,
                     'header':header})
-
 
 def base(request):
     print("base")

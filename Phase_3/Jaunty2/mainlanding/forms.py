@@ -29,7 +29,7 @@ class QueryVehicleForm(forms.Form):
    manufacturer_name = forms.CharField()
    model_year = forms.DateField()
    color = forms.ChoiceField(choices=color_choices)
-   list_price = forms.CharField()
+   list_price = forms.FloatField()
    keywords = forms.CharField()
 
    def clean_data(self):
