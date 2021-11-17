@@ -1,0 +1,5 @@
+SELECT count(Vehicle.VIN) AS number_of_tot_vehicles
+FROM Vehicle
+LEFT OUTER JOIN Sale
+  ON Vehicle.VIN=Sale.VIN
+WHERE Sale.Sale_price IS NULL;
