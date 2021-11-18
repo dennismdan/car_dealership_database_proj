@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Customer</title>
+</head>
+<body>
+ <form name = "lookup_customer" action = "{% url 'lookup customer' %}" method = "POST" id="form1">
+
+     <div>
+         <label>Driver's License</label>
+         <input type="text" name="licence">
+     </div>
+     <div>
+         <label>TIN</label>
+         <input type="text" name="tin">
+     </div>
+     <button type="submit" name="submit" form="form1">Lookup Customer</button>
+ </form>
+
+ <p>Click Add Customer button if customer is not found</p>
+
+ <form name = "add_customer" action = "{% url 'add customer' %}" method = "POST">
+     <button type="submit">Add Customer</button>
+ </form>
+</body>
+</html>
