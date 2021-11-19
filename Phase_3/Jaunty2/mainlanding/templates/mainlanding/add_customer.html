@@ -1,46 +1,54 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>Add Customer</title>
-</head>
-<body>
- <form name = "add_customer_form" action = "{% url 'add customer' %}" method = "POST">
-     <div>
-         <label>Phone number</label>
-         <input type="text" name="phone number">
-     </div>
-     <div>
-         <label>Email</label>
-         <input type="email" name="email">
-     </div>
-     <div>
-          <label>Street address</label>
-       <input type="text" name="street address">
-     </div>
-     <div>
-           <label>City</label>
-           <input type="text" name="city">
-     </div>
-     <div>
-            <label>State</label>
-            <input type="text" name="state">
-     </div>
-     <div>
-            <label>Postal code</label>
-            <input type="text" name="postal code">
-     </div>
-     <button type="submit">Submit</button>
- </form>
+<!--<!DOCTYPE html>-->
+<!--<html lang="en">-->
+<!--<head>-->
+<!--    <meta charset="UTF-8">-->
+<!--    <title>Add Customer</title>-->
+<!--</head>-->
+<!--<body>-->
+<!-- <form name = "add_customer_form" action = "{% url 'add customer' %}" method = "POST">-->
+<!--     <div>-->
+<!--         <label>Phone number</label>-->
+<!--         <input type="text" name="phone_number">-->
+<!--     </div>-->
+<!--     <div>-->
+<!--         <label>Email</label>-->
+<!--         <input type="email" name="email">-->
+<!--     </div>-->
+<!--     <div>-->
+<!--          <label>Street address</label>-->
+<!--       <input type="text" name="street_address">-->
+<!--     </div>-->
+<!--     <div>-->
+<!--           <label>City</label>-->
+<!--           <input type="text" name="city">-->
+<!--     </div>-->
+<!--     <div>-->
+<!--            <label>State</label>-->
+<!--            <input type="text" name="state">-->
+<!--     </div>-->
+<!--     <div>-->
+<!--            <label>Postal code</label>-->
+<!--            <input type="text" name="postal_code">-->
+<!--     </div>-->
+<!--     <button type="submit">Submit</button>-->
+<!-- </form>-->
 
- <p>If customer is person click Individual</p>
- <form action = "{% url 'individual' %}" method = "POST">
-     <button type="submit">Individual</button>
- </form>
+<!-- <p>If customer is person click Individual</p>-->
+<!-- <form action = "{% url 'individual' %}" method = "POST">-->
+<!--     <button type="submit">Individual</button>-->
+<!-- </form>-->
 
- <p>If customer is business click Business</p>
- <form action = "{% url 'individual' %}" method = "POST">>
-     <button type="submit">Business</button>
- </form>
-</body>
-</html>
+<!-- <p>If customer is business click Business</p>-->
+<!-- <form action = "{% url 'individual' %}" method = "POST">>-->
+<!--     <button type="submit">Business</button>-->
+<!-- </form>-->
+<!--</body>-->
+<!--</html>-->
+{% extends "mainlanding/base.html" %}
+{% block content %}
+<h1> Add Customer </h1>
+<form name = "add_customer" action = "{% url 'add_customer' %}" method = "POST" >{% csrf_token %}
+    <button type="submit">Add</button>
+</form>
+{% endblock %}
+
