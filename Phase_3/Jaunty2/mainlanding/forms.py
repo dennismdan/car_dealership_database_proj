@@ -42,7 +42,9 @@ class ReportTypes(forms.Form):
    report_choices = ((1, "Sales by month"), (2, "sales by vehicle"), (3, "sales by ..."), (4, "TODO: implement actual options"))
    reports = forms.ChoiceField(choices=report_choices)
 
-
+class FilterBy(forms.Form):
+   filter_choices = ((1, "Sold Vehicles"), (2, "Unsold Vehicles"), (3, "All Vehicles"),)
+   reports = forms.ChoiceField(choices=filter_choices)
 
 
 

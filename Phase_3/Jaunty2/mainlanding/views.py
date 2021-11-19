@@ -1,6 +1,6 @@
 from django.shortcuts import render
 from django.http import HttpResponseRedirect
-from .forms import LoginForm, QueryVehicleForm,ReportTypes,LookupCustomer
+from .forms import LoginForm, QueryVehicleForm,ReportTypes,LookupCustomer,FilterBy
 from .utils import run_query, generate_query
 
 '''
@@ -72,6 +72,11 @@ def click(request):
 
 def login(request):
     return render(request, 'mainlanding/loging.html')
+
+def filter_vehicles(request):
+    print("filter")
+    form = FilterBy()
+    return render(request, 'mainlanding/filter.html',{'form': form})
 
 def lookup_customer(request):
     view_inventory = False

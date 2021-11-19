@@ -1,0 +1,29 @@
+{% extends "mainlanding/base.html" %}
+
+{% block style %}
+        .home {
+            color: #818181;
+            }
+        .add_vehicle {
+            color: #818181;
+            }
+        .reports {
+            color: #818181;
+            }
+        .repairs {
+            color: #818181;
+            }
+        .filter  {
+            color: #f5f5f5;
+            }
+{% endblock %}
+
+{% block title %} Filter {% endblock %}
+
+{% block content %}
+<h1> Filter Vehicles </h1>
+<form name = "filter_vehicle_form" action = "{% url 'filter_vehicles' %}" method = "POST" >{% csrf_token %}
+    {{ form.as_p }}
+    <button type="submit">Filter</button>
+</form>
+{% endblock %}
