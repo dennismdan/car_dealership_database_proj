@@ -43,6 +43,7 @@ class ReportTypes(forms.Form):
    reports = forms.ChoiceField(choices=report_choices)
 
 
+<<<<<<< HEAD
 class LookupCustomer(forms.Form):
    '''
 
@@ -50,3 +51,15 @@ class LookupCustomer(forms.Form):
 
    drivers_licens_nr = forms.IntegerField()
    tin = forms.IntegerField()
+=======
+
+
+
+class AddCustomer(forms.Form):
+  phone_number = forms.CharField()
+  email = forms.EmailField(required = False,)
+  street_address = forms.CharField()
+  city = forms.CharField()
+  state = forms.CharField()
+  postal_code = forms.CharField()
+>>>>>>> 22521a8d10571bcd03a00152e9716b802daf8036
