@@ -1,14 +1,18 @@
 from django.shortcuts import render
 from django.http import HttpResponseRedirect
-from .forms import LoginForm, QueryVehicleForm,ReportTypes, LookupCustomer
+from .forms import LoginForm, QueryVehicleForm,ReportTypes,LookupCustomer
 from .utils import run_query, generate_query
 
+'''
+TODO: 
+list all business constraint 
+make sure that we implement ALL constraints in our code 
+'''
 
 def home(request):
     view_inventory = False
     data = []
     header = []
-
 
     if request.method == 'POST':
         form = QueryVehicleForm(request.POST)
@@ -69,6 +73,19 @@ def click(request):
 def login(request):
     return render(request, 'mainlanding/loging.html')
 
+def lookup_customer(request):
+    view_inventory = False
+    data = []
+    header = []
+
+    form = LookupCustomer()
+
+
+    return render(request,'mainlanding/lookup_customer.html',
+                  {'form': form,
+                    'data':data,
+                    'header':header})
+
 
 
 def loggedin(request):
@@ -86,17 +103,3 @@ def loggedin(request):
         MyLoginForm = LoginForm()
 
     return render(request, 'mainlanding/home.html')
-
-
-def lookup_customer(request):
-    view_inventory = False
-    data = []
-    header = []
-
-    form = LookupCustomer()
-
-
-    return render(request,'mainlanding/lookup_customer.html',
-                  {'form': form,
-                    'data':data,
-                    'header':header})
