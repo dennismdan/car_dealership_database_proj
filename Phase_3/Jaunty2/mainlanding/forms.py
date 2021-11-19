@@ -43,9 +43,10 @@ class ReportTypes(forms.Form):
    reports = forms.ChoiceField(choices=report_choices)
 
 
+
+
+
 class LookupCustomer(forms.Form):
-
-
    drivers_licens_nr = forms.IntegerField()
    tin = forms.IntegerField()
 
@@ -59,4 +60,9 @@ class AddCustomer(forms.Form):
   city = forms.CharField()
   state = forms.CharField()
   postal_code = forms.CharField()
+
+
+  def clean_data(self):
+      pass
+
 
