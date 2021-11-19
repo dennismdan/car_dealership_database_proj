@@ -36,23 +36,21 @@ class QueryVehicleForm(forms.Form):
       pass
 
 
-
-
 class ReportTypes(forms.Form):
-   report_choices = ((1, "Sales by month"), (2, "sales by vehicle"), (3, "sales by ..."), (4, "TODO: implement actual options"))
+   report_choices = ((1, "Sales by Color"), (2, "Sales by Type"), (3, "Sales by Manufacturer"),
+                     (4, "Gross Customer Income"), (5, "Average Time in Inventory"), (6, "Part Statistics"),
+                     (7, "Below Cost Sales"), (8, "Repairs By Manufacturer/Type/Model"), (9, "Monthly Sales"),)
    reports = forms.ChoiceField(choices=report_choices)
+
 
 class FilterBy(forms.Form):
    filter_choices = ((1, "Sold Vehicles"), (2, "Unsold Vehicles"), (3, "All Vehicles"),)
-   reports = forms.ChoiceField(choices=filter_choices)
-
+   filter = forms.ChoiceField(choices=filter_choices)
 
 
 class LookupCustomer(forms.Form):
    drivers_licens_nr = forms.IntegerField()
    tin = forms.IntegerField()
-
-
 
 
 class AddCustomer(forms.Form):
