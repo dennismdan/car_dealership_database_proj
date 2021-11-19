@@ -41,3 +41,12 @@ class QueryVehicleForm(forms.Form):
 class ReportTypes(forms.Form):
    report_choices = ((1, "Sales by month"), (2, "sales by vehicle"), (3, "sales by ..."), (4, "TODO: implement actual options"))
    reports = forms.ChoiceField(choices=report_choices)
+
+
+class LookupCustomer(forms.Form):
+   '''
+
+   '''
+
+   drivers_licens_nr = forms.IntegerField()
+   tin = forms.IntegerField()

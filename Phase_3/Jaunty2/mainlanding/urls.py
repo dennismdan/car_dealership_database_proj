@@ -10,4 +10,6 @@ urlpatterns = [
     path('repairs/', views.repairs, name="repairs"),
     path('login/', views.login, name="login"),
     path('loggedin/', views.loggedin, name="loggedin"),
+    path('loggedin/', views.loggedin, name="loggedin"),
+    path('lookup_customer/', views.lookup_customer, name="lookup_customer"),
 ]
