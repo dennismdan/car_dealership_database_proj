@@ -41,3 +41,15 @@ class QueryVehicleForm(forms.Form):
 class ReportTypes(forms.Form):
    report_choices = ((1, "Sales by month"), (2, "sales by vehicle"), (3, "sales by ..."), (4, "TODO: implement actual options"))
    reports = forms.ChoiceField(choices=report_choices)
+
+
+
+
+
+class AddCustomer(forms.Form):
+  phone_number = forms.CharField()
+  email = forms.EmailField(required = False,)
+  street_address = forms.CharField()
+  city = forms.CharField()
+  state = forms.CharField()
+  postal_code = forms.CharField()
