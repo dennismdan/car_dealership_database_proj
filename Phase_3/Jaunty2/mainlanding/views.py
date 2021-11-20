@@ -78,6 +78,11 @@ def filter_vehicles(request):
     form = FilterBy()
     return render(request, 'mainlanding/filter.html',{'form': form})
 
+
+def total_vehicles_available(request):
+    return render(request, 'mainlanding/home.html')
+
+
 def lookup_customer(request):
     view_inventory = False
     data = []
@@ -108,7 +113,6 @@ def add_customer(request):
 
 def loggedin(request):
     username = "username"
-
     print()
 
     if request.method == "POST":

@@ -24,8 +24,9 @@ class QueryVehicleForm(forms.Form):
    '''
 
    color_choices = ((1,"green"),(2,"blue"),(3,"black"),(4,"white"))
+   vehicle_choices = ((1, "Car"), (2, "Truck"), (3, "VanMinivan"), (4, "SUV"), (5, "Convertible"))
 
-   vehicle_type = forms.CharField()
+   vehicle_type = forms.ChoiceField(choices=vehicle_choices)
    manufacturer_name = forms.CharField()
    model_year = forms.DateField()
    color = forms.ChoiceField(choices=color_choices)
