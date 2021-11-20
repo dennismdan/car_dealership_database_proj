@@ -1,6 +1,6 @@
 from django.shortcuts import render
 from django.http import HttpResponseRedirect
-from .forms import LoginForm, QueryVehicleForm,ReportTypes,LookupCustomer,FilterBy
+from .forms import LoginForm, QueryVehicleForm,ReportTypes,LookupCustomer,FilterBy,AddCustomer
 from .utils import run_query, generate_query
 
 '''
@@ -87,6 +87,19 @@ def lookup_customer(request):
 
 
     return render(request,'mainlanding/lookup_customer.html',
+                  {'form': form,
+                    'data':data,
+                    'header':header})
+
+def add_customer(request):
+    view_inventory = False
+    data = []
+    header = []
+
+    form = AddCustomer()
+
+
+    return render(request,'mainlanding/add_customer.html',
                   {'form': form,
                     'data':data,
                     'header':header})
