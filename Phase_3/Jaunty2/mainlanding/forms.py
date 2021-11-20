@@ -1,5 +1,5 @@
 from django import forms
-
+from utils import run_query
 '''
 Pass forms to html
 https://djangobook.com/mdj2-django-forms/
@@ -22,18 +22,17 @@ class QueryVehicleForm(forms.Form):
    we want to retrieve these with a query pass as parameter
    TODO: Vehicle type, manufacturer name, and model year, keyword is a drop down
    '''
+   def __init__(self):
+       color_choices = ((1,"green"),(2,"blue"),(3,"black"),(4,"white"))
 
-   color_choices = ((1,"green"),(2,"blue"),(3,"black"),(4,"white"))
+       vehicle_type = forms.CharField()
+       manufacturer_name = forms.CharField()
+       model_year = forms.DateField()
+       color = forms.ChoiceField(choices=color_choices)
+       list_price = forms.FloatField()
+       keywords = forms.CharField()
 
-   vehicle_type = forms.CharField()
-   manufacturer_name = forms.CharField()
-   model_year = forms.DateField()
-   color = forms.ChoiceField(choices=color_choices)
-   list_price = forms.FloatField()
-   keywords = forms.CharField()
 
-   def clean_data(self):
-      pass
 
 
 class ReportTypes(forms.Form):
@@ -65,4 +64,10 @@ class AddCustomer(forms.Form):
   def clean_data(self):
       pass
 
+def get_colors(self):
+  query = "SELECT DISTINCT(Color) FROM Color"
+  colors = run_query(query)
 
+  return colors
+
+get_colors()
