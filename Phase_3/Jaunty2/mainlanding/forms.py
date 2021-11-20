@@ -1,5 +1,7 @@
 from django import forms
 
+from mainlanding.utils import get_colors
+
 '''
 Pass forms to html
 https://djangobook.com/mdj2-django-forms/
