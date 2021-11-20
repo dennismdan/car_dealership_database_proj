@@ -52,7 +52,7 @@ def get_colors():
    colors,cols = run_query(query)
    colors = [(i,colors[i][0]) for i in range(len(colors))]
    return colors
-print(SERVER)
-print(get_colors())
+
+
 
 
