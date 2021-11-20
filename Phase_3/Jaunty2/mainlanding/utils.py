@@ -1,4 +1,4 @@
-from runtime_constants import SERVER
+from .runtime_constants import SERVER
 '''
 TODO:
 1. Update the generate_query function to handle SELCET, DELETE, UPDATE, INSERT
@@ -32,7 +32,7 @@ def run_query(query:str)->List[tuple]:
     :param query:
     :return:
     '''
-    print(SERVER)
+
     conn = pyodbc.connect('Driver={SQL Server};'
                           f'Server={SERVER};'
                           'Database=CS6400;'
@@ -46,5 +46,11 @@ def run_query(query:str)->List[tuple]:
     header = [column[0] for column in cursor.description]
     cursor.close()
     return results, header
+
+def get_colors():
+   query = "SELECT DISTINCT Color FROM Color"
+   colors,cols = run_query(query)
+   colors = [(i,colors[i][0]) for i in range(len(colors))]
+   return colors
 
 

@@ -131,3 +131,10 @@ def loggedin(request):
         MyLoginForm = LoginForm()
 
     return render(request, 'mainlanding/home.html')
+
+def add_customer():
+    pass
+
+def total_vehicles_available():
+    pass
+
