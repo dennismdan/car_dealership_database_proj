@@ -1,5 +1,5 @@
 from django import forms
-
+from .utils import get_colors
 '''
 Pass forms to html
 https://djangobook.com/mdj2-django-forms/
@@ -24,7 +24,6 @@ class QueryVehicleForm(forms.Form):
    TODO: Vehicle type, manufacturer name, and model year, keyword is a drop down
    '''
    color_choices = get_colors()
-
    vehicle_type = forms.CharField()
    manufacturer_name = forms.CharField()
    model_year = forms.DateField()
