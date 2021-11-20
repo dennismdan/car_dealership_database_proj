@@ -46,3 +46,5 @@ def run_query(query:str)->List[tuple]:
     header = [column[0] for column in cursor.description]
     cursor.close()
     return results, header
+
+
