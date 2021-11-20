@@ -1,3 +1,4 @@
+{% extends "mainlanding/base.html" %}
 <!--<!DOCTYPE html>-->
 <!--<html lang="en">-->
 <!--<head>-->
@@ -44,11 +45,12 @@
 <!-- </form>-->
 <!--</body>-->
 <!--</html>-->
-{% extends "mainlanding/base.html" %}
+
 {% block content %}
 <h1> Add Customer </h1>
-<form name = "add_customer" action = "{% url 'add_customer' %}" method = "POST" >{% csrf_token %}
-    <button type="submit">Add</button>
+<form name = "add_customer" action = "{% url 'add_customer' %}" method = "POST" >
+     {{ form.as_p }}
 </form>
+    <button type="submit">Add Customer</button>
 {% endblock %}
 

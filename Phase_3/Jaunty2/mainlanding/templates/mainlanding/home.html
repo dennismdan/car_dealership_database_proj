@@ -28,6 +28,7 @@
 
 {% block content %}
 <button type="submit" onclick="location.href='{% url 'login' %}'" name='login'>Log In</button>
+<button type="submit" onclick="location.href='{% url 'total_vehicles_available' %}'" name='Total Vehicles'>Total Vehicles</button>
 <h1> Home - landing page</h1>
 
 <form name = "search_vehicle_form" action = "{% url 'home' %}" method = "POST" novalidate>
