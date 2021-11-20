@@ -19,5 +19,16 @@
 
 {% block content %}
 <h1> Add New Vehicle to the Inventory</h1>
+
+<form name = "add_vehicle" action = "{% url 'add_vehicle' %}" method = "POST" >{% csrf_token %}
+    {{ form.as_p }}
+    <button type="submit">Add Vehicle</button>
+
+</form>
+
+
+
+
+
 {% endblock %}
 
