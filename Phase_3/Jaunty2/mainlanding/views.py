@@ -145,7 +145,6 @@ def loggedin(request):
     return render(request, 'mainlanding/home.html')
 
 
-
 def total_vehicles_available():
     pass
 
