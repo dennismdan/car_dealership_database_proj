@@ -62,7 +62,4 @@ class AddCustomer(forms.Form):
   postal_code = forms.CharField()
 
 
-  def clean_data(self):
-      pass
-
 
