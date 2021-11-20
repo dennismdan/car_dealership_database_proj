@@ -1,5 +1,4 @@
 from django import forms
-from .utils import run_query, get_colors
 
 '''
 Pass forms to html
@@ -11,9 +10,10 @@ https://www.b-list.org/weblog/2008/nov/09/dynamic-forms/
 TODO: apply business constraints   
 '''
 
+
 class LoginForm(forms.Form):
-   user = forms.CharField(max_length = 100)
-   password = forms.CharField(widget = forms.PasswordInput())
+    user = forms.CharField(max_length=100)
+    password = forms.CharField(widget=forms.PasswordInput())
 
 
 
@@ -60,7 +60,20 @@ class AddCustomer(forms.Form):
   state = forms.CharField()
   postal_code = forms.CharField()
 
+  def clean_data(self):
+        pass
+
+
 class AddVehicle(forms.Form):
-  pass
+    VIN = forms.CharField()
+    Year = forms.CharField()
+    Model_name = forms.CharField()
+    Description = forms.CharField()
+    Invoice_price = forms.CharField()
+    List_price = forms.CharField()
+    Inventory_date = forms.CharField()
+    Manufacturer_name = forms.CharField()
+    Username = forms.CharField()
 
-
+    def clean_data(self):
+        pass
