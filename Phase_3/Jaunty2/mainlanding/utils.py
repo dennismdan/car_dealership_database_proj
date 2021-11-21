@@ -32,12 +32,26 @@ def get_search_vehicle_query(user_input:dict)->str:
 
     TODO: format query per project structure
     '''
-    query = "SELECT * FROM Vehicle WHERE "
-    where_clause = ["col1=value1", "", ""]
-    for key, val in user_input.items():
-        where_clause.append(f"{key}={val}")
+    query = "SELECT * FROM Vehicle"
+    non_vehicle_fields = ["Vehicle_type","sold_unsold_filter","Color"]
+    vehicle_fields = ["Manufacturer_name","Model_year","Year","VIN"]
+    other_fields = ["List_price", "Description","min_price","max_price","keywords"]
 
-    query += " AND ".join(where_clause)
+    where_clause = []
+    for key, val in user_input.items():
+        if (key in vehicle_fields) and (val != "all") and (val != ""):
+            where_clause.append(f"{key}='{val}'")
+    if len(where_clause)>0:
+        query += " WHERE "
+        query += " AND ".join(where_clause)
+
+        if user_input["min_price"] !="":
+            query += f" AND List_price > {user_input['min_price']}"
+
+        if user_input["max_price"] != "":
+            query += f" AND List_price > {user_input['min_price']}"
+
+
     return query
 
 def run_query(query:str,return_results:bool = True)->List[tuple]:
@@ -83,6 +97,7 @@ def get_colors():
     query = "SELECT DISTINCT Color FROM Color"
     colors, cols = run_query(query)
     colors = [(i, colors[i][0]) for i in range(len(colors))]
+    colors.append((len(colors), "all"))
     return colors
 
 def get_query_from_file(file_name:str)->str:
@@ -95,5 +110,9 @@ def get_query_from_file(file_name:str)->str:
         query_string = query_string.replace("  "," ").replace("   "," ")
     return query_string
 
-
-print(get_query_from_file("search_veh_by_vin.txt"))
+def get_manufacturer_names():
+    query = "select DISTINCT Manufacturer_name from Manufacturer"
+    manufacturers, cols = run_query(query)
+    manufacturers = [(i, manufacturers[i][0]) for i in range(len(manufacturers))]
+    manufacturers.append((len(manufacturers), "all"))
+    return manufacturers

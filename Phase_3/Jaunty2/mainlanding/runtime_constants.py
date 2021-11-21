@@ -2,6 +2,7 @@ import os
 
 SERVER = os.getenv("DB_SERVER", "MAORYZEN7\SQLEXPRESS")
 
+USER_ROLE = os.getenv("USER_ROLE", "regular_user")
 
 class EnvError(Exception):
     pass
