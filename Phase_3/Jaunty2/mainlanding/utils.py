@@ -1,4 +1,7 @@
 from .runtime_constants import SERVER
+
+import os
+
 '''
 TODO:
 1. Update the generate_query function to handle SELCET, DELETE, UPDATE, INSERT
@@ -83,6 +86,14 @@ def get_colors():
     return colors
 
 def get_query_from_file(file_name:str)->str:
-    pass
+    cwd = os.getcwd()
+    sql_path = os.path.join(cwd,"mainlanding\SQL")
+    file_path = os.path.join(sql_path,file_name)
+
+    with open(file_path, 'r') as file:
+        query_string = file.read().replace('\n', ' ').replace('\t','')
+        query_string = query_string.replace("  "," ").replace("   "," ")
+    return query_string
 
 
+print(get_query_from_file("search_veh_by_vin.txt"))

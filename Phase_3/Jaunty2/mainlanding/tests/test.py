@@ -1,7 +1,7 @@
 import time
 
 import pytest
-from ..utils import gen_query_add_row, run_query,insert_row
+from ..utils import gen_query_add_row, run_query,insert_row,get_query_from_file
 '''
 https://coderedirect.com/questions/192135/pyodbc-insert-into-sql
 https://thepythonguru.com/inserting-rows/
@@ -34,4 +34,12 @@ def test_insert_row():
 
     assert len(dataBefore)+1 == len(dataAfter)
 
+
+def test_get_query_from_file():
+    expected = """SELECT * FROM test_table GROUP BY col1 HAVING COUNT(*) > 2 ORDER BY col1"""
+    query = get_query_from_file("test_query")
+    dataBefore,_ = run_query(expected)
+    index = len(dataBefore)
+    assert index > 0
+    assert expected == query
 
