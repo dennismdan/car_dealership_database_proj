@@ -1,5 +1,4 @@
 from .runtime_constants import SERVER
-
 '''
 TODO:
 1. Update the generate_query function to handle SELCET, DELETE, UPDATE, INSERT
@@ -57,4 +56,3 @@ def get_colors():
     return colors
 
 
-print(get_colors())
