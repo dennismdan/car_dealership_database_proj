@@ -1,7 +1,7 @@
 from django.shortcuts import render
 from django.http import HttpResponseRedirect
 from .forms import LoginForm, QueryVehicleForm, ReportTypes, LookupCustomer, FilterBy, AddCustomer
-from .utils import run_query, generate_query
+from .utils import run_query, get_search_vehicle_query
 
 '''
 TODO: 
@@ -19,7 +19,7 @@ def home(request):
         form = QueryVehicleForm(request.POST)
         print("POST statement from home page")
         user_input = form.data.dict()
-        query = generate_query(user_input)
+        query = get_search_vehicle_query(user_input)
         data, header = run_query(query)
     else:
         form = QueryVehicleForm()
@@ -27,7 +27,7 @@ def home(request):
     #     if form.is_valid():
     #         # TODO: run the search vihicle query function
     #         '''
-    #         query = generate_query(form.data)
+    #         query = get_search_vehicle_query(form.data)
     #         data = run_query(query)
     #         '''
     #         #return HttpResponseRedirect('/home?view_inventory=True')
