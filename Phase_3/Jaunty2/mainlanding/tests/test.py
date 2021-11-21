@@ -7,11 +7,13 @@ https://coderedirect.com/questions/192135/pyodbc-insert-into-sql
 https://thepythonguru.com/inserting-rows/
 '''
 
+
+
 def test_gen_query_add_row():
     table = 'test_table'
     row = ("val",)
     query = gen_query_add_row(table,row)
-    expected = "INSERT INTO test_table(col1) VALUES ('val',);"
+    expected = "INSERT INTO test_table(col1) VALUES (?) "
     assert expected == query
 
 
