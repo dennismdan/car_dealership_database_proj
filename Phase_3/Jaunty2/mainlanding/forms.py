@@ -1,4 +1,5 @@
 from django import forms
+from .utils import get_colors
 
 '''
 Pass forms to html
