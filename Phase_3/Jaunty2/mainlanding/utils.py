@@ -10,13 +10,25 @@ TODO:
 from typing import Tuple,List
 import pyodbc
 
-def generate_query(user_input:dict)->str:
+def gen_query_add_row(table_name:str,row:tuple)->str:
+    colQuery = f"SELECT COLUMN_NAME FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME='{table_name}';"
+
+    colnames,_ = run_query(colQuery)
+
+    colnames = ','.join([col[0] for col in colnames])
+    row_len = len(row)
+
+    row =",".join(["?" for i in range(row_len)])
+    query = f"INSERT INTO {table_name}({colnames}) VALUES ({row}) "
+    return query
+
+
+def get_search_vehicle_query(user_input:dict)->str:
     '''
     :param user_input: dictionary of form {col1:value,col2:value}
     :return:
 
     TODO: format query per project structure
-
     '''
     query = "SELECT * FROM Vehicle WHERE "
     where_clause = ["col1=value1","",""]
@@ -27,7 +39,7 @@ def generate_query(user_input:dict)->str:
     return query
 
 
-def run_query(query:str)->List[tuple]:
+def run_query(query:str,return_results:bool = True)->List[tuple]:
     '''
     :param query:
     :return:
@@ -38,19 +50,43 @@ def run_query(query:str)->List[tuple]:
                           'Database=CS6400;'
                           'Trusted_Connection=yes;')
     cursor = conn.cursor()
-
     cursor.execute(query)
-    results = []
-    for i in cursor:
-        results.append(i)
-    header = [column[0] for column in cursor.description]
+
+    results = None
+    header = None
+    if return_results:
+        results = cursor.fetchall()
+        header = [column[0] for column in cursor.description]
+
     cursor.close()
     return results, header
+
+def insert_row(query:str,row):
+    '''
+    :param query:
+    :return:
+    '''
+
+    conn = pyodbc.connect('Driver={SQL Server};'
+                          f'Server={SERVER};'
+                          'Database=CS6400;'
+                          'Trusted_Connection=yes;')
+    cursor = conn.cursor()
+    cursor.execute(query,row)
+    conn.commit()
+    cursor.close()
+
+    return
 
 def get_colors():
    query = "SELECT DISTINCT Color FROM Color"
    colors,cols = run_query(query)
    colors = [(i,colors[i][0]) for i in range(len(colors))]
    return colors
+
+
+q = gen_query_add_row('test_table',("val4",))
+print(q)
+print(insert_row(q,("val4",)))
 
 

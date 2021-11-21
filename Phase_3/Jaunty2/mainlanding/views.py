@@ -119,14 +119,14 @@ def lookup_customer(request):
 def loggedin(request):
     username = "username"
 
-    print()
+    print("login clicked")
 
     if request.method == "POST":
         # Get the posted form
-        MyLoginForm = LoginForm(request.POST)
-
-        if MyLoginForm.is_valid():
-            username = MyLoginForm.cleaned_data['username']
+        print("User Logging in as: ")
+        form = LoginForm(request.POST)
+        user_input = form.data.dict()
+        print(user_input)
     else:
         MyLoginForm = LoginForm()
 
