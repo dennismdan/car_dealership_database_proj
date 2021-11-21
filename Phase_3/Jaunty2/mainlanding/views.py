@@ -1,6 +1,6 @@
 from django.shortcuts import render
 from django.http import HttpResponseRedirect
-from .forms import LoginForm, QueryVehicleForm, ReportTypes, LookupCustomer, FilterBy, AddVehicle
+from .forms import LoginForm, QueryVehicleForm, ReportTypes, LookupCustomer, FilterBy, AddCustomer
 from .utils import run_query, generate_query
 
 '''
@@ -56,25 +56,25 @@ def base(request):
     return render(request, 'mainlanding/base.html')
 
 
-def add_vehicle(request):
-    print("vehicle")
-    VIN = "VIN"
-    # if this is a POST request we need to process the form data
-    if request.method == 'POST':
-        # create a form instance and populate it with data from the request:
-        form = AddVehicle(request.POST)
-        # check whether it's valid:
-        if form.is_valid():
-            # process the data in form.cleaned_data as required
-            VIN = AddVehicle().cleaned_data['VIN']
-            # ...
-            # redirect to a new URL:
-            # return HttpResponseRedirect('/thanks/')
-    # if a GET (or any other method) we'll create a blank form
-    else:
-        form = AddVehicle()
-    # print("add_vehicle")
-    return render(request, 'mainlanding/add_vehicle.html', {'form': form})
+# def add_vehicle(request):
+#     print("vehicle")
+#     VIN = "VIN"
+#     # if this is a POST request we need to process the form data
+#     if request.method == 'POST':
+#         # create a form instance and populate it with data from the request:
+#         form = AddVehicle(request.POST)
+#         # check whether it's valid:
+#         if form.is_valid():
+#             # process the data in form.cleaned_data as required
+#             VIN = AddVehicle().cleaned_data['VIN']
+#             # ...
+#             # redirect to a new URL:
+#             # return HttpResponseRedirect('/thanks/')
+#     # if a GET (or any other method) we'll create a blank form
+#     else:
+#         form = AddVehicle()
+#     # print("add_vehicle")
+#     return render(request, 'mainlanding/add_vehicle.html', {'form': form})
 
 
 def reports(request):
@@ -115,6 +115,18 @@ def lookup_customer(request):
                    'data': data,
                    'header': header})
 
+def add_customer(request):
+    view_inventory = False
+    data = []
+    header = []
+
+    form = AddCustomer()
+
+    return render(request, 'mainlanding/add_customer.html',
+                  {'form': form,
+                   'data': data,
+                   'header': header})
+
 
 def loggedin(request):
     username = "username"
@@ -132,9 +144,11 @@ def loggedin(request):
 
     return render(request, 'mainlanding/home.html')
 
-def add_customer():
-    pass
+
 
 def total_vehicles_available():
+    pass
+
+def add_vehicle():
     pass
 

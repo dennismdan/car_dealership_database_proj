@@ -7,7 +7,7 @@ TODO:
 
 '''
 
-from typing import Tuple,List
+from typing import Tuple, List
 import pyodbc
 
 def gen_query_add_row(table_name:str,row:tuple)->str:
@@ -31,8 +31,8 @@ def get_search_vehicle_query(user_input:dict)->str:
     TODO: format query per project structure
     '''
     query = "SELECT * FROM Vehicle WHERE "
-    where_clause = ["col1=value1","",""]
-    for key,val in user_input.items():
+    where_clause = ["col1=value1", "", ""]
+    for key, val in user_input.items():
         where_clause.append(f"{key}={val}")
 
     query += " AND ".join(where_clause)
@@ -79,10 +79,10 @@ def insert_row(query:str,row):
     return
 
 def get_colors():
-   query = "SELECT DISTINCT Color FROM Color"
-   colors,cols = run_query(query)
-   colors = [(i,colors[i][0]) for i in range(len(colors))]
-   return colors
+    query = "SELECT DISTINCT Color FROM Color"
+    colors, cols = run_query(query)
+    colors = [(i, colors[i][0]) for i in range(len(colors))]
+    return colors
 
 
 q = gen_query_add_row('test_table',("val4",))
