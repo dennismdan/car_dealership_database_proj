@@ -22,7 +22,6 @@ def gen_query_add_row(table_name:str,row:tuple)->str:
     query = f"INSERT INTO {table_name}({colnames}) VALUES ({row}) "
     return query
 
-
 def get_search_vehicle_query(user_input:dict)->str:
     '''
     :param user_input: dictionary of form {col1:value,col2:value}
@@ -37,7 +36,6 @@ def get_search_vehicle_query(user_input:dict)->str:
 
     query += " AND ".join(where_clause)
     return query
-
 
 def run_query(query:str,return_results:bool = True)->List[tuple]:
     '''
@@ -84,9 +82,7 @@ def get_colors():
     colors = [(i, colors[i][0]) for i in range(len(colors))]
     return colors
 
-
-q = gen_query_add_row('test_table',("val4",))
-print(q)
-print(insert_row(q,("val4",)))
+def get_query_from_file(file_name:str)->str:
+    pass
 
 
