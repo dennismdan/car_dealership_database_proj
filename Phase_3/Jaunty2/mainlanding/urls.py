@@ -12,5 +12,6 @@ urlpatterns = [
     path('loggedin/', views.loggedin, name="loggedin"),
     path('loggedin/', views.loggedin, name="loggedin"),
     path('lookup_customer/', views.lookup_customer, name="lookup_customer"),
-    path('filter_vehicles/', views.filter_vehicles, name="filter_vehicles")
+    path('filter_vehicles/', views.filter_vehicles, name="filter_vehicles"),
+    path('total_vehicles_available/', views.total_vehicles_available, name="total_vehicles_available"),
 ]
