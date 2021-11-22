@@ -24,12 +24,15 @@
       <center>
            <label for="user">Select a user: </label>
            <select id="user" name="users">
-              <option value="unauth_user" selected>Regular User</option>
-              <option value="manager">Manager</option>
-              <option value="inventory_clerk">Inventory Clerk</option>
-              <option value="service_writer">Service Writer</option>
-              <option value="sales_person">Sales Person</option>
-              <option value="owner">Owner</option>
+              {% for key, value in users.items %}
+
+                  {% if  key == current_role %}
+                     <option value={{ key }} selected> {{ value }}</option>
+                  {% else %}
+                     <option value={{ key }}> {{ value }}</option>
+                  {% endif %}
+
+               {% endfor %}
            </select>
       </center>
    </div>

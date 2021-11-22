@@ -32,25 +32,42 @@ def get_search_vehicle_query(user_input:dict)->str:
 
     TODO: format query per project structure
     '''
-    query = "SELECT * FROM Vehicle"
-    non_vehicle_fields = ["Vehicle_type","sold_unsold_filter","Color"]
-    vehicle_fields = ["Manufacturer_name","Model_year","Year","VIN"]
-    other_fields = ["List_price", "Description","min_price","max_price","keywords"]
+
+    query = get_query_from_file("query_vehicle.txt")
+
+    vehicle_fields = ["Manufacturer_name","Year","VIN","Vehicle_type","Model_name"]
 
     where_clause = []
     for key, val in user_input.items():
-        if (key in vehicle_fields) and (val != "all") and (val != ""):
-            where_clause.append(f"{key}='{val}'")
-    if len(where_clause)>0:
+
+        if (val != "all") and (val != ""):
+            if key in vehicle_fields:
+                if key == "VIN":
+                    where_clause.append(f"(v.VIN='{val}')")
+                else:
+                    where_clause.append(f"({key}='{val}')")
+
+            if key == "min_price":
+                where_clause.append(f"(List_price > {user_input['min_price']})")
+            if key == "max_price":
+                where_clause.append(f"(List_price < {user_input['max_price']})")
+
+            if val == "sold": # for sold unsold filter
+                where_clause.append(f"(v.VIN IN ( SELECT s.VIN FROM Sale s))")
+            elif val == "unsold":
+                where_clause.append(f"(v.VIN NOT IN ( SELECT s.VIN FROM Sale s))")
+
+            if key == "Color":
+                where_clause.append(f"((SELECT DISTINCT STRING_AGG(c.Color,' | ') FROM Color c WHERE c.VIN=v.VIN) LIKE '%{val}%')")
+
+            if key == "keywords":
+                keywords = user_input["keywords"].split(',')
+                for word in keywords:
+                    where_clause.append(f"(Description LIKE '%{word}%')")
+
+    if len(where_clause) > 0:
         query += " WHERE "
         query += " AND ".join(where_clause)
-
-        if user_input["min_price"] !="":
-            query += f" AND List_price > {user_input['min_price']}"
-
-        if user_input["max_price"] != "":
-            query += f" AND List_price > {user_input['min_price']}"
-
 
     return query
 
@@ -106,7 +123,7 @@ def get_query_from_file(file_name:str)->str:
     file_path = os.path.join(sql_path,file_name)
 
     with open(file_path, 'r') as file:
-        query_string = file.read().replace('\n', ' ').replace('\t','')
+        query_string = file.read().replace('\n', ' ').replace('\t',' ')
         query_string = query_string.replace("  "," ").replace("   "," ")
     return query_string
 

@@ -16,28 +16,36 @@ https://jacobian.org/2010/feb/28/dynamic-form-generation/
 
 
 def home(request):
-    view_inventory = False
     data = []
     header = []
     form = QueryVehicleForm()
+    home_status = "Search available inventory."
+
     if request.method == 'POST':
         form = QueryVehicleForm(request.POST)
+
         if form.is_valid():
             print("POST statement from home page")
             user_input = form.extract_data()
-
             query = get_search_vehicle_query(user_input)
-            print(query)
 
             data, header = run_query(query)
+            if len(data) == 0:
+                home_status = "Sorry, it looks like we don’t have that in stock!"
+            else:
+                home_status = "Results found and displayed below."
+        else:
+            home_status = "Inputs fields need to be corrected."
     else:
         form = QueryVehicleForm()
+
 
     vehicle_count = run_query("SELECT COUNT(*) FROM Vehicle")[0][0][0]
 
     return render(request, 'mainlanding/home.html',
                   {'form': form,
                    'data': data,
+                   'status':home_status,
                    'user':os.environ["USER_ROLE"],
                    'vehicle_count':vehicle_count,
                    'header': header})
@@ -86,7 +94,16 @@ def click(request):
 
 
 def login(request):
-    return render(request, 'mainlanding/loging.html')
+    users = {"unauth_user": "Regular User",
+             "manager": "Manager",
+             "inventory_clerck": "Inventory Clerk",
+             "service_writer": "Service Writer",
+             "sales_person": "Sales Person",
+             "owner": "Owner"}
+    current_role = os.environ["USER_ROLE"]
+
+    return render(request, 'mainlanding/loging.html',
+                  {"users":users,"current_role":current_role})
 
 
 def filter_vehicles(request):
@@ -162,6 +179,7 @@ def loggedin(request):
 
     return render(request, 'mainlanding/home.html',
                   {'form': form,
+                   'status': "Search available inventory.",
                    'data': data,
                    'user':os.environ["USER_ROLE"],
                    'vehicle_count':vehicle_count,
