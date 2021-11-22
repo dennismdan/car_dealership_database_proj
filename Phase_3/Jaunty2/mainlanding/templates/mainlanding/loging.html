@@ -1,45 +1,54 @@
 
 {% extends "mainlanding/base.html" %}
 {% block content %}
-<html>
-   <body>
+<br>
+<div>
+   <p> For user name, enter the role you want to take on.
+      For example, if you type in manager, then you will see what a manager will see. </p>
+   <p> Available roles (options) for usernames:</p>
+   <ol>
+      <li>regular_user</li>
+      <li>sales_person</li>
+      <li>manager</li>
+      <li>inventory_clerk</li>
+      <li>service_writer</li>
+      <li>owner</li>
+   </ol>
+   <p> All other usernames will be treated as un-authenticated</p>
+   <p> The password field doens't matter, it can be anything or left blank.</p>
+</div>
+   <br>
+<form name = "form" action = "{% url 'loggedin' %}" method = "POST" novalidate>{% csrf_token %}
 
-      <form name = "form" action = "{% url 'loggedin' %}"
-         method = "POST" >{% csrf_token %}
-
-         <div style = "max-width:470px;">
-            <center>
-               <input type = "text" style = "margin-left:20%;"
-                  placeholder = "Identifiant" name = "username" />
-            </center>
-         </div>
-
-         <br>
-
-         <div style = "max-width:470px;">
-            <center>
-               <input type = "password" style = "margin-left:20%;"
-                  placeholder = "password" name = "password" />
-            </center>
-         </div>
-
-         <br>
-
-         <div style = "max-width:470px;">
-            <center>
-
-               <button style = "border:0px; background-color:#4285F4; margin-top:8%;
-                  height:35px; width:80%;margin-left:19%;" type = "submit"
-                  value = "Login" >
-                  <strong>Login</strong>
-               </button>
-
-            </center>
-         </div>
-
-      </form>
-
-   </body>
-</html>
+   <div style = "max-width:470px;">
+      <center>
+           <label for="user">Select a user: </label>
+           <select id="user" name="users">
+              <option value="unauth_user" selected>Regular User</option>
+              <option value="manager">Manager</option>
+              <option value="inventory_clerk">Inventory Clerk</option>
+              <option value="service_writer">Service Writer</option>
+              <option value="sales_person">Sales Person</option>
+              <option value="owner">Owner</option>
+           </select>
+      </center>
+   </div>
+   <br>
+   <div style = "max-width:470px;">
+      <center>
+         <input type = "password" style = "margin-left:20%;"
+            placeholder = "password" name = "password" />
+      </center>
+   </div>
+   <br>
+   <div style = "max-width:470px;">
+      <center>
+         <button style = "border:0px; background-color:#4285F4; margin-top:8%;
+            height:35px; width:80%;margin-left:19%;" type = "submit">
+            <strong>Login</strong>
+         </button>
+      </center>
+   </div>
+</form>
 
 {% endblock %}

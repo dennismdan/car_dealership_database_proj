@@ -1,0 +1,5 @@
+SELECT *
+FROM test_table
+GROUP BY col1
+    HAVING COUNT(*) > 2
+ORDER BY col1

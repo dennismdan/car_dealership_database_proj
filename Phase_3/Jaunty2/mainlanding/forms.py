@@ -1,5 +1,13 @@
+import os
+
 from django import forms
-from .utils import get_colors
+import mainlanding.views
+from mainlanding.utils import get_colors,get_manufacturer_names
+import datetime
+import os
+
+workers = ["owner","manager","inventory_clerk","sales_person","service_writer","regular_user"]
+
 '''
 Pass forms to html
 https://djangobook.com/mdj2-django-forms/
@@ -18,20 +26,73 @@ class LoginForm(forms.Form):
 
 
 class QueryVehicleForm(forms.Form):
-   '''
+    '''
    TODO: right now color chices are hard coded
    we want to retrieve these with a query pass as parameter
    TODO: Vehicle type, manufacturer name, and model year, keyword is a drop down
    '''
-   color_choices = get_colors()
-   vehicle_type = forms.CharField()
-   manufacturer_name = forms.CharField()
-   model_year = forms.DateField()
-   color = forms.ChoiceField(choices=color_choices)
-   list_price = forms.FloatField()
-   keywords = forms.CharField()
+    color_choices = get_colors()
+    vehicle_choices = [(0,"Car"),(1,"Convertible"),(2,"SUV"),(3,"Truck"),(4,"VanMinivan"),(5,"all")]
+    manufacturer_names = get_manufacturer_names()
+    year_choices = [(r, r) for r in range(1920, datetime.date.today().year + 1)]
+    year_choices.append((0,0))
+
+    Vehicle_type = forms.ChoiceField(choices=vehicle_choices,
+                                     label = "Vehicle Type",
+                                     initial=5)
+    Manufacturer_name = forms.ChoiceField(choices=manufacturer_names,
+                                          label = "Manufacturer Name",
+                                          initial=len(manufacturer_names)-1,
+                                          )
+    Color = forms.ChoiceField(choices=color_choices,
+                              label = "Color",
+                              initial=len(color_choices)-1,
+                              required=False)
+    Year = forms.IntegerField(min_value=1920,
+                                    max_value=datetime.date.today().year,
+                                    label="Model Year",
+                                    required=False)
+    min_price = forms.DecimalField(max_digits=6,
+                                   decimal_places=2,
+                                   label="Min Price",
+                                   required=False
+                                   )
+    max_price = forms.DecimalField(max_digits=6,
+                                   decimal_places=2,
+                                   label = "Max Price",
+                                   required=False)
+
+    keywords = forms.CharField(label="Key Words",
+                              required=False)
+
+    def __init__(self, *args, **kwargs):
+
+        super(QueryVehicleForm, self).__init__(*args, **kwargs)
+
+        VIN = forms.CharField(min_length=1,max_length=17, required=False, label = "Search by VIN")
+        sold_unsold_filter = forms.ChoiceField(choices=[(0,"all"),(1,"sold"),(2,"unsold")],label = "Filter by")
+
+        user_role = os.environ["USER_ROLE"]
 
 
+        # self.fields["vehicle_choices"].initial = "all"
+        # self.fields["manufacturer_name"].initial = "all"
+        # self.fields['color'].initial = "all"
+
+        if user_role in workers[0:2]:
+            self.fields['VIN'] = VIN
+            self.fields['sold_unsold_filter'] = sold_unsold_filter
+            self.initial["sold_unsold_filter"] = "all"
+
+        elif user_role in workers:
+            self.fields['VIN'] = VIN
+
+    def extract_data(self):
+        data = self.data.dict()
+        data['Vehicle_type'] = self.vehicle_choices[int(data['Vehicle_type'])][1]
+        data['Manufacturer_name'] = self.manufacturer_names[int(data['Manufacturer_name'])][1]
+        data['Color'] = self.color_choices[int(data['Color'])][1]
+        return data
 
 
 class ReportTypes(forms.Form):
