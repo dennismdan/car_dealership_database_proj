@@ -62,6 +62,19 @@ class AddCustomer(forms.Form):
   def clean_data(self):
         pass
 
+class Individual(forms.Form):
+  first_name = forms.CharField()
+  last_name = forms.CharField()
+  driver_license_nr = forms.CharField()
+  customer_id = forms.CharField()
+
+class Business(forms.Form):
+  business_name = forms.CharField()
+  contact_name = forms.CharField()
+  contact_title = forms.CharField()
+  TIN= forms.CharField()
+  customer_id = forms.CharField()
+
 
 class AddVehicle(forms.Form):
     VIN = forms.CharField()

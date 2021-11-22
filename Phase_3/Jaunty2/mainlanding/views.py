@@ -1,6 +1,6 @@
 from django.shortcuts import render
 from django.http import HttpResponseRedirect
-from .forms import LoginForm, QueryVehicleForm, ReportTypes, LookupCustomer, FilterBy, AddCustomer
+from .forms import LoginForm, QueryVehicleForm, ReportTypes, LookupCustomer, FilterBy, AddCustomer, Individual, Business
 from .utils import run_query, generate_query
 
 '''
@@ -123,6 +123,30 @@ def add_customer(request):
     form = AddCustomer()
 
     return render(request, 'mainlanding/add_customer.html',
+                  {'form': form,
+                   'data': data,
+                   'header': header})
+
+def individual(request):
+    view_inventory = False
+    data = []
+    header = []
+
+    form = Individual()
+
+    return render(request, 'mainlanding/individual.html',
+                  {'form': form,
+                   'data': data,
+                   'header': header})
+
+def business(request):
+    view_inventory = False
+    data = []
+    header = []
+
+    form = Business()
+
+    return render(request, 'mainlanding/business.html',
                   {'form': form,
                    'data': data,
                    'header': header})
