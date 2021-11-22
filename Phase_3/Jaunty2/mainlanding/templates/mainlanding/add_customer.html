@@ -48,9 +48,10 @@
 
 {% block content %}
 <h1> Add Customer </h1>
-<form name = "add_customer" action = "{% url 'add_customer' %}" method = "POST" >
+<form name = "add_customer" action = "{% url 'add_customer' %} " method = "POST" >
      {{ form.as_p }}
 </form>
-    <button type="submit">Add Customer</button>
+    <button type="submit" onclick="location.href='{% url 'individual' %}'" name='individual'>Individual</button>
+    <button type="submit" onclick="location.href='{% url 'business' %}'" name='business'>Business</button>
 {% endblock %}
 
