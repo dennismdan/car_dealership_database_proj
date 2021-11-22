@@ -1,12 +1,17 @@
+import os
+
 from django.shortcuts import render
 from django.http import HttpResponseRedirect
 from .forms import LoginForm, QueryVehicleForm, ReportTypes, LookupCustomer, FilterBy, AddCustomer
-from .utils import run_query, generate_query
+from .utils import run_query, get_search_vehicle_query
+from .runtime_constants import USER_ROLE
 
+USER_ROLE = os.environ["USER_ROLE"]
 '''
 TODO: 
 list all business constraint 
 make sure that we implement ALL constraints in our code 
+https://jacobian.org/2010/feb/28/dynamic-form-generation/
 '''
 
 
@@ -14,40 +19,27 @@ def home(request):
     view_inventory = False
     data = []
     header = []
-
+    form = QueryVehicleForm()
     if request.method == 'POST':
         form = QueryVehicleForm(request.POST)
-        print("POST statement from home page")
-        user_input = form.data.dict()
-        query = generate_query(user_input)
-        data, header = run_query(query)
+        if form.is_valid():
+            print("POST statement from home page")
+            user_input = form.extract_data()
+
+            query = get_search_vehicle_query(user_input)
+            print(query)
+
+            data, header = run_query(query)
     else:
         form = QueryVehicleForm()
-    #
-    #     if form.is_valid():
-    #         # TODO: run the search vihicle query function
-    #         '''
-    #         query = generate_query(form.data)
-    #         data = run_query(query)
-    #         '''
-    #         #return HttpResponseRedirect('/home?view_inventory=True')
-    #     else:
-    #         '''
-    #         TODO: handle form when format doesn't match expectation
-    #         Copy error handling from bootstrap templates
-    #         '''
-    #         data = form.data.dict()
-    #     form = QueryVehicleForm()
-    # else:
-    #     print("welcome home")
-    #     form = QueryVehicleForm()
 
-    print("data: ", data)
-    print("header: ", header)
+    vehicle_count = run_query("SELECT COUNT(*) FROM Vehicle")[0][0][0]
 
     return render(request, 'mainlanding/home.html',
                   {'form': form,
                    'data': data,
+                   'user':os.environ["USER_ROLE"],
+                   'vehicle_count':vehicle_count,
                    'header': header})
 
 
@@ -115,6 +107,7 @@ def lookup_customer(request):
                    'data': data,
                    'header': header})
 
+
 def add_customer(request):
     view_inventory = False
     data = []
@@ -129,20 +122,27 @@ def add_customer(request):
 
 
 def loggedin(request):
-    username = "username"
-
-    print()
-
+    data = None
+    header = None
     if request.method == "POST":
         # Get the posted form
-        MyLoginForm = LoginForm(request.POST)
+        form = LoginForm(request.POST)
+        user_input = form.data.dict()
+        print("User Logging in as: ",user_input["users"])
+        os.environ["USER_ROLE"] = user_input["users"]
 
-        if MyLoginForm.is_valid():
-            username = MyLoginForm.cleaned_data['username']
+        form = QueryVehicleForm()
     else:
-        MyLoginForm = LoginForm()
+        form = LoginForm()
 
-    return render(request, 'mainlanding/home.html')
+    vehicle_count = run_query("SELECT COUNT(*) FROM Vehicle")[0][0][0]
+
+    return render(request, 'mainlanding/home.html',
+                  {'form': form,
+                   'data': data,
+                   'user':os.environ["USER_ROLE"],
+                   'vehicle_count':vehicle_count,
+                   'header': header})
 
 
 
