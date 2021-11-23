@@ -42,7 +42,7 @@ def home(request):
 
     vehicle_count = run_query("SELECT COUNT(*) FROM Vehicle")[0][0][0]
 
-    return render(request, 'mainlanding/home.html',
+    return render(request, 'main_app/home.html',
                   {'form': form,
                    'data': data,
                    'status':home_status,
@@ -53,7 +53,7 @@ def home(request):
 
 def base(request):
     print("base")
-    return render(request, 'mainlanding/base.html')
+    return render(request, 'main_app/base.html')
 
 
 # def add_vehicle(request):
@@ -74,24 +74,21 @@ def base(request):
 #     else:
 #         form = AddVehicle()
 #     # print("add_vehicle")
-#     return render(request, 'mainlanding/add_vehicle.html', {'form': form})
+#     return render(request, 'main_app/add_vehicle.html', {'form': form})
 
 
 def reports(request):
     print("reports")
     form = ReportTypes()
-    return render(request, 'mainlanding/reports.html', {'form': form})
-
+    return render(request, 'main_app/reports.html', {'form': form})
 
 def repairs(request):
     print("repairs")
-    return render(request, 'mainlanding/repairs.html')
-
+    return render(request, 'main_app/repairs.html')
 
 def click(request):
     print("clicked")
-    return render(request, 'mainlanding/clicked.html')
-
+    return render(request, 'main_app/clicked.html')
 
 def login(request):
     users = {"unauth_user": "Regular User",
@@ -102,15 +99,13 @@ def login(request):
              "owner": "Owner"}
     current_role = os.environ["USER_ROLE"]
 
-    return render(request, 'mainlanding/loging.html',
+    return render(request, 'main_app/loging.html',
                   {"users":users,"current_role":current_role})
-
 
 def filter_vehicles(request):
     print("filter")
     form = FilterBy()
-    return render(request, 'mainlanding/filter.html', {'form': form})
-
+    return render(request, 'main_app/filter.html', {'form': form})
 
 def lookup_customer(request):
     view_inventory = False
@@ -119,7 +114,7 @@ def lookup_customer(request):
 
     form = LookupCustomer()
 
-    return render(request, 'mainlanding/lookup_customer.html',
+    return render(request, 'main_app/lookup_customer.html',
                   {'form': form,
                    'data': data,
                    'header': header})
@@ -131,7 +126,7 @@ def add_customer(request):
 
     form = AddCustomer()
 
-    return render(request, 'mainlanding/add_customer.html',
+    return render(request, 'main_app/add_customer.html',
                   {'form': form,
                    'data': data,
                    'header': header})
@@ -143,7 +138,7 @@ def individual(request):
 
     form = Individual()
 
-    return render(request, 'mainlanding/individual.html',
+    return render(request, 'main_app/individual.html',
                   {'form': form,
                    'data': data,
                    'header': header})
@@ -155,11 +150,10 @@ def business(request):
 
     form = Business()
 
-    return render(request, 'mainlanding/business.html',
+    return render(request, 'main_app/business.html',
                   {'form': form,
                    'data': data,
                    'header': header})
-
 
 def loggedin(request):
     data = None
@@ -177,7 +171,7 @@ def loggedin(request):
 
     vehicle_count = run_query("SELECT COUNT(*) FROM Vehicle")[0][0][0]
 
-    return render(request, 'mainlanding/home.html',
+    return render(request, 'main_app/home.html',
                   {'form': form,
                    'status': "Search available inventory.",
                    'data': data,
@@ -185,11 +179,30 @@ def loggedin(request):
                    'vehicle_count':vehicle_count,
                    'header': header})
 
-
-
 def total_vehicles_available():
     pass
 
 def add_vehicle():
     pass
 
+def vehicle_details(request):
+    '''
+    https://stackoverflow.com/questions/29153593/passing-variable-from-django-template-to-view
+    :param request:
+    :return:
+    '''
+    data = []
+    header = []
+    form = QueryVehicleForm()
+    home_status = "Search available inventory."
+
+    if request.method == 'GET':
+        form = QueryVehicleForm(request.GET)
+        print(form)
+    else:
+        pass
+
+    return render(request, 'main_app/vehicle_details.html',
+                  {"vin":"vin",
+                   'data': data,
+                   'header': header})

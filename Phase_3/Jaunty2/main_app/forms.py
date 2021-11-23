@@ -110,6 +110,7 @@ class QueryVehicleForm(forms.Form):
 
         return data
 
+
 class ReportTypes(forms.Form):
    report_choices = ((1, "Sales by Color"), (2, "Sales by Type"), (3, "Sales by Manufacturer"),
                      (4, "Gross Customer Income"), (5, "Average Time in Inventory"), (6, "Part Statistics"),

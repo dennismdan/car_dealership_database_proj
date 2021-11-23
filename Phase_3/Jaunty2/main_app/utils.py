@@ -119,7 +119,7 @@ def get_colors():
 
 def get_query_from_file(file_name:str)->str:
     cwd = os.getcwd()
-    sql_path = os.path.join(cwd,"mainlanding\SQL")
+    sql_path = os.path.join(cwd,"main_app\SQL")
     file_path = os.path.join(sql_path,file_name)
 
     with open(file_path, 'r') as file:
