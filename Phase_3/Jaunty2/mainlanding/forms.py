@@ -150,3 +150,15 @@ class AddVehicle(forms.Form):
 
     def clean_data(self):
         pass
+
+
+class AddRepair(forms.Form):
+  VIN = forms.CharField()
+  Customer_id = forms.CharField()
+  Start_date = forms.DateField()
+  Labor_charges = forms.CharField()
+  Total_cost = forms.CharField()
+  Description = forms.CharField()
+  Completion_date = forms.DateField()
+  Odometer_reading = forms.CharField()
+  Username = forms.CharField()

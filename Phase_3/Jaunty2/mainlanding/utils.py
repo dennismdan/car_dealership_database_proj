@@ -116,3 +116,9 @@ def get_manufacturer_names():
     manufacturers = [(i, manufacturers[i][0]) for i in range(len(manufacturers))]
     manufacturers.append((len(manufacturers), "all"))
     return manufacturers
+
+def add_repair():
+
+    query = gen_query_add_row("Repair", ())
+
+    insert_row(query, (1, 22, 2021-11-20, "xyx", 123, 'ServiceWriter'))

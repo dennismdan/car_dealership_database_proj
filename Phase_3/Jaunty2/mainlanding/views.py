@@ -3,6 +3,7 @@ import os
 from django.shortcuts import render
 from django.http import HttpResponseRedirect
 from .forms import LoginForm, QueryVehicleForm, ReportTypes, LookupCustomer, FilterBy, AddCustomer, Individual, Business
+from .forms import AddRepair
 from .utils import run_query, get_search_vehicle_query
 from .runtime_constants import USER_ROLE
 
@@ -167,6 +168,17 @@ def loggedin(request):
                    'vehicle_count':vehicle_count,
                    'header': header})
 
+def add_repair(request):
+    view_inventory = False
+    data = []
+    header = []
+
+    form = AddRepair()
+
+    return render(request, 'mainlanding/add_repair.html',
+                  {'form': form,
+                   'data': data,
+                   'header': header})
 
 
 def total_vehicles_available():

@@ -22,10 +22,11 @@
 <form name = "search_vehicle_form" action = "{% url 'repairs' %}" method = "POST" >
     {% csrf_token %}
     <button type="submit">View Repair</button>
-    <button type="submit">Add Repair</button>
+
 </form>
 
 <button type="submit" onclick="location.href='{% url 'lookup_customer' %}'" name='lookup_customer'>Lookup Customer</button>
 <button type="submit" onclick="location.href='{% url 'add_customer' %}'" name='add_customer'>Add Customer</button>
+ <button type="submit" onclick="location.href='{% url 'add_repair' %}'" name='add_repair'>Add Repair</button>
 {% endblock %}
 
