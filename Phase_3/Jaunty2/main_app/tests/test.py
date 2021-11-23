@@ -1,13 +1,13 @@
+import os
 import time
 
 import pytest
-from ..utils import gen_query_add_row, run_query,insert_row,get_query_from_file, get_manufacturer_names
+from ..utils import gen_query_add_row, run_query,insert_row,get_query_from_file, get_manufacturer_names, compose_pyodbc_connection
+
 '''
 https://coderedirect.com/questions/192135/pyodbc-insert-into-sql
 https://thepythonguru.com/inserting-rows/
 '''
-
-
 
 def test_gen_query_add_row():
     table = 'test_table'
@@ -46,3 +46,19 @@ def test_get_query_from_file():
 def test_get_manufacturer_names():
     data = get_manufacturer_names()
     assert len(data)>0
+
+def test_get_search_vehicle_query():
+    data = get_query_from_file("query_vehicle.txt")
+    print(data)
+    assert True
+
+def test_compose_pyodbc_connection():
+    connect_str = compose_pyodbc_connection()
+    print(connect_str)
+    os.environ["PYODBC_AUTH"] = "True"
+    os.environ["PYODBC_USER"] = "Dennis"
+    os.environ["PYODBC_PW"] = "####"
+    connect_str = compose_pyodbc_connection()
+    print(connect_str)
+    os.environ["PYODBC_AUTH"] = "False"
+    assert True

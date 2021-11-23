@@ -1,5 +1,5 @@
 from .runtime_constants import SERVER
-
+import getpass
 import os
 
 '''
@@ -12,6 +12,15 @@ TODO:
 
 from typing import Tuple, List
 import pyodbc
+
+def compose_pyodbc_connection():
+    connection_string = 'Driver={SQL Server};Server=%s;Database=CS6400;Trusted_Connection=yes;' % ( SERVER )
+    if os.getenv("PYODBC_AUTH")=="True":
+        usr = os.getenv("PYODBC_USER")
+        pw = os.getenv("PYODBC_PW")
+        connection_string+='uid=%s;pwd=%s;'%(usr,pw)
+
+    return connection_string
 
 def gen_query_add_row(table_name:str,row:tuple)->str:
     colQuery = f"SELECT COLUMN_NAME FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME='{table_name}';"
@@ -32,25 +41,42 @@ def get_search_vehicle_query(user_input:dict)->str:
 
     TODO: format query per project structure
     '''
-    query = "SELECT * FROM Vehicle"
-    non_vehicle_fields = ["Vehicle_type","sold_unsold_filter","Color"]
-    vehicle_fields = ["Manufacturer_name","Model_year","Year","VIN"]
-    other_fields = ["List_price", "Description","min_price","max_price","keywords"]
+
+    query = get_query_from_file("query_vehicle.txt")
+
+    vehicle_fields = ["Manufacturer_name","Year","VIN","Vehicle_type","Model_name"]
 
     where_clause = []
     for key, val in user_input.items():
-        if (key in vehicle_fields) and (val != "all") and (val != ""):
-            where_clause.append(f"{key}='{val}'")
-    if len(where_clause)>0:
+
+        if (val != "all") and (val != ""):
+            if key in vehicle_fields:
+                if key == "VIN":
+                    where_clause.append(f"(v.VIN='{val}')")
+                else:
+                    where_clause.append(f"({key}='{val}')")
+
+            if key == "min_price":
+                where_clause.append(f"(List_price > {user_input['min_price']})")
+            if key == "max_price":
+                where_clause.append(f"(List_price < {user_input['max_price']})")
+
+            if val == "sold": # for sold unsold filter
+                where_clause.append(f"(v.VIN IN ( SELECT s.VIN FROM Sale s))")
+            elif val == "unsold":
+                where_clause.append(f"(v.VIN NOT IN ( SELECT s.VIN FROM Sale s))")
+
+            if key == "Color":
+                where_clause.append(f"((SELECT DISTINCT STRING_AGG(c.Color,' | ') FROM Color c WHERE c.VIN=v.VIN) LIKE '%{val}%')")
+
+            if key == "keywords":
+                keywords = user_input["keywords"].split(',')
+                for word in keywords:
+                    where_clause.append(f"(Description LIKE '%{word}%')")
+
+    if len(where_clause) > 0:
         query += " WHERE "
         query += " AND ".join(where_clause)
-
-        if user_input["min_price"] !="":
-            query += f" AND List_price > {user_input['min_price']}"
-
-        if user_input["max_price"] != "":
-            query += f" AND List_price > {user_input['min_price']}"
-
 
     return query
 
@@ -59,11 +85,8 @@ def run_query(query:str,return_results:bool = True)->List[tuple]:
     :param query:
     :return:
     '''
-
-    conn = pyodbc.connect('Driver={SQL Server};'
-                          f'Server={SERVER};'
-                          'Database=CS6400;'
-                          'Trusted_Connection=yes;')
+    connection_str = compose_pyodbc_connection()
+    conn = pyodbc.connect(connection_str)
     cursor = conn.cursor()
     cursor.execute(query)
 
@@ -82,10 +105,9 @@ def insert_row(query:str,row):
     :return:
     '''
 
-    conn = pyodbc.connect('Driver={SQL Server};'
-                          f'Server={SERVER};'
-                          'Database=CS6400;'
-                          'Trusted_Connection=yes;')
+    connection_str = compose_pyodbc_connection()
+    conn = pyodbc.connect(connection_str)
+
     cursor = conn.cursor()
     cursor.execute(query,row)
     conn.commit()
@@ -102,11 +124,11 @@ def get_colors():
 
 def get_query_from_file(file_name:str)->str:
     cwd = os.getcwd()
-    sql_path = os.path.join(cwd,"mainlanding\SQL")
+    sql_path = os.path.join(cwd,"main_app\SQL")
     file_path = os.path.join(sql_path,file_name)
 
     with open(file_path, 'r') as file:
-        query_string = file.read().replace('\n', ' ').replace('\t','')
+        query_string = file.read().replace('\n', ' ').replace('\t',' ')
         query_string = query_string.replace("  "," ").replace("   "," ")
     return query_string
 
