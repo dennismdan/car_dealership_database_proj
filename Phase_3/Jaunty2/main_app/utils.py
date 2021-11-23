@@ -1,5 +1,5 @@
 from .runtime_constants import SERVER
-
+import getpass
 import os
 
 '''
@@ -12,6 +12,15 @@ TODO:
 
 from typing import Tuple, List
 import pyodbc
+
+def compose_pyodbc_connection():
+    connection_string = 'Driver={SQL Server};Server=%s;Database=CS6400;Trusted_Connection=yes;' % ( SERVER )
+    if os.getenv("PYODBC_AUTH")=="True":
+        usr = os.getenv("PYODBC_USER")
+        pw = os.getenv("PYODBC_PW")
+        connection_string+='uid=%s;pwd=%s;'%(usr,pw)
+
+    return connection_string
 
 def gen_query_add_row(table_name:str,row:tuple)->str:
     colQuery = f"SELECT COLUMN_NAME FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME='{table_name}';"
@@ -76,11 +85,8 @@ def run_query(query:str,return_results:bool = True)->List[tuple]:
     :param query:
     :return:
     '''
-
-    conn = pyodbc.connect('Driver={SQL Server};'
-                          f'Server={SERVER};'
-                          'Database=CS6400;'
-                          'Trusted_Connection=yes;')
+    connection_str = compose_pyodbc_connection()
+    conn = pyodbc.connect(connection_str)
     cursor = conn.cursor()
     cursor.execute(query)
 
@@ -99,10 +105,9 @@ def insert_row(query:str,row):
     :return:
     '''
 
-    conn = pyodbc.connect('Driver={SQL Server};'
-                          f'Server={SERVER};'
-                          'Database=CS6400;'
-                          'Trusted_Connection=yes;')
+    connection_str = compose_pyodbc_connection()
+    conn = pyodbc.connect(connection_str)
+
     cursor = conn.cursor()
     cursor.execute(query,row)
     conn.commit()
