@@ -1,9 +1,10 @@
 import os
 
 from django import forms
-import mainlanding.views
+import main_app.views
+
 from django.core.exceptions import ValidationError
-from mainlanding.utils import get_colors,get_manufacturer_names
+from main_app.utils import get_colors,get_manufacturer_names
 import datetime
 import os
 
