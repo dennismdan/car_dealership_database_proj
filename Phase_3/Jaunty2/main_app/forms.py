@@ -156,22 +156,44 @@ class AddCustomer(forms.Form):
   state = forms.CharField()
   postal_code = forms.CharField()
 
+  def __init__(self, *args, **kwargs):
+
+      super(AddCustomer, self).__init__(*args, **kwargs)
+
+      # Person Fields
+      first_name = forms.CharField()
+      last_name = forms.CharField()
+      driver_license_nr = forms.CharField()
+      customer_id = forms.CharField()
+      person_fields = [first_name,last_name,driver_license_nr,customer_id]
+      person_names = ["first_name", "last_name", "driver_license_nr", "customer_id"]
+
+      # Business Fields
+      business_name = forms.CharField()
+      contact_name = forms.CharField()
+      contact_title = forms.CharField()
+      TIN = forms.CharField()
+      customer_id = forms.CharField()
+      business_fields = [business_name,contact_name,contact_title,TIN,customer_id]
+      business_names = ["business_name", "contact_name", "contact_title", "TIN", "customer_id"]
+
+      add_user_type = os.environ["ADD_USER_TYPE"] # can either be person or business
+
+      if add_user_type == "individual":
+          self.add_fields_to_form(person_fields,person_names)
+      elif add_user_type == "business":
+          self.add_fields_to_form(business_fields,business_names)
+
+
+
+  def add_fields_to_form(self,form_list:list, name_list):
+      for i in range(len(form_list)):
+
+          self.fields[name_list[i]] = form_list[i]
+
 
   def clean_data(self):
         pass
-
-class Individual(forms.Form):
-  first_name = forms.CharField()
-  last_name = forms.CharField()
-  driver_license_nr = forms.CharField()
-  customer_id = forms.CharField()
-
-class Business(forms.Form):
-  business_name = forms.CharField()
-  contact_name = forms.CharField()
-  contact_title = forms.CharField()
-  TIN= forms.CharField()
-  customer_id = forms.CharField()
 
 
 class AddVehicle(forms.Form):

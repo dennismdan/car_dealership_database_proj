@@ -1,69 +1,17 @@
 {% extends "mainlanding/base.html" %}
-<!--<!DOCTYPE html>-->
-<!--<html lang="en">-->
-<!--<head>-->
-<!--    <meta charset="UTF-8">-->
-<!--    <title>Add Customer</title>-->
-<!--</head>-->
-<!--<body>-->
-<!-- <form name = "add_customer_form" action = "{% url 'add customer' %}" method = "POST">-->
-<!--     <div>-->
-<!--         <label>Phone number</label>-->
-<!--         <input type="text" name="phone_number">-->
-<!--     </div>-->
-<!--     <div>-->
-<!--         <label>Email</label>-->
-<!--         <input type="email" name="email">-->
-<!--     </div>-->
-<!--     <div>-->
-<!--          <label>Street address</label>-->
-<!--       <input type="text" name="street_address">-->
-<!--     </div>-->
-<!--     <div>-->
-<!--           <label>City</label>-->
-<!--           <input type="text" name="city">-->
-<!--     </div>-->
-<!--     <div>-->
-<!--            <label>State</label>-->
-<!--            <input type="text" name="state">-->
-<!--     </div>-->
-<!--     <div>-->
-<!--            <label>Postal code</label>-->
-<!--            <input type="text" name="postal_code">-->
-<!--     </div>-->
-<!--     <button type="submit">Submit</button>-->
-<!-- </form>-->
 
-<!-- <p>If customer is person click Individual</p>-->
-<!-- <form action = "{% url 'individual' %}" method = "POST">-->
-<!--     <button type="submit">Individual</button>-->
-<!-- </form>-->
-
-<!-- <p>If customer is business click Business</p>-->
-<!-- <form action = "{% url 'individual' %}" method = "POST">>-->
-<!--     <button type="submit">Business</button>-->
-<!-- </form>-->
-<!--</body>-->
-<!--</html>-->
 
 {% block content %}
-<h1> Add Customer </h1>
+<h1> Add Customer: {{ customer }}</h1>
+<div>
+    <button type="submit" onclick="location.href='{% url 'individual' %}'" name='individual'>Individual</button></div>
+<div>
+    <button type="submit" onclick="location.href='{% url 'business' %}'" name='business'>Business</button>
+</div>
+
 <form name = "add_customer" action = "{% url 'add_customer' %} " method = "POST" >
      {{ form.as_p }}
     <input type="submit"  value="Save">
-    <div>
-        <label> <input type="radio" onclick="location.href='{% url 'individual' %}'" name="select-type" value="individual">Individual</label>
-    </div>
-    <div>
-        <label> <input type="radio" onclick="location.href='{% url 'business' %}'" name="select-type" value="Business">Business</label>
-    </div>
-
 </form>
-
-
-
-
-
-
 {% endblock %}
 
