@@ -18,6 +18,8 @@ urlpatterns = [
     path('individual/', views.individual, name="individual"),
     path('business/', views.business, name="business"),
     path('vehicle_details/', views.vehicle_details, name="vehicle_details"),
+    path('add_repair/', views.add_repair, name="add_repair"),
+
 
 
 ]

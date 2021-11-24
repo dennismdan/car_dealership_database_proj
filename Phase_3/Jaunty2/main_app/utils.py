@@ -138,3 +138,37 @@ def get_manufacturer_names():
     manufacturers = [(i, manufacturers[i][0]) for i in range(len(manufacturers))]
     manufacturers.append((len(manufacturers), "all"))
     return manufacturers
+
+def add_repair():
+
+    query = gen_query_add_row("Repair", ())
+
+    insert_row(query, (1, 22, 2021-11-20, "xyx", 123, 'ServiceWriter'))
+
+
+def lookup_customer_query(user_input:dict)->str:
+    '''
+    :param user_input: dictionary of form {col1:value,col2:value}
+    :return:
+
+    TODO: format query per project structure
+    '''
+
+    query = get_query_from_file("lookup_person.txt")
+
+    customer_fields = ["drivers_licens_nr", "tin"]
+    where_clause = []
+    for key, val in user_input.items():
+
+        if key in customer_fields:
+                if key == "drivers_licens_nr":
+                    where_clause.append(f"(Driver_license='{val}')")
+                else:
+                    where_clause.append(f"({key}='{val}')")
+
+
+    if len(where_clause) > 0:
+        query += " WHERE "
+        query += " AND ".join(where_clause)
+
+    return query

@@ -124,8 +124,28 @@ class FilterBy(forms.Form):
 
 
 class LookupCustomer(forms.Form):
-   drivers_licens_nr = forms.IntegerField()
-   tin = forms.IntegerField()
+   drivers_licens_nr = forms.IntegerField(required=False)
+   tin = forms.IntegerField(required=False)
+
+   # def __init__(self, *args, **kwargs):
+   #
+   #     # super(LookupCustomer, self).__init__(*args, **kwargs)
+   #     #
+   #     #
+   #     #
+   #     # user_role = os.environ["USER_ROLE"]
+       #
+
+
+   def extract_data(self):
+       data = self.data.dict()
+       data['Driver_license'] = self.drivers_licens_nr
+       data['TIN'] = self.tin
+
+       user_role = os.environ["USER_ROLE"]
+
+
+       return data
 
 
 class AddCustomer(forms.Form):
@@ -135,6 +155,7 @@ class AddCustomer(forms.Form):
   city = forms.CharField()
   state = forms.CharField()
   postal_code = forms.CharField()
+
 
   def clean_data(self):
         pass
@@ -166,3 +187,15 @@ class AddVehicle(forms.Form):
 
     def clean_data(self):
         pass
+
+
+class AddRepair(forms.Form):
+  VIN = forms.CharField()
+  Customer_id = forms.CharField()
+  Start_date = forms.DateField()
+  Labor_charges = forms.CharField()
+  Total_cost = forms.CharField()
+  Description = forms.CharField()
+  Completion_date = forms.DateField()
+  Odometer_reading = forms.CharField()
+  Username = forms.CharField()

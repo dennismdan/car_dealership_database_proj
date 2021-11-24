@@ -1,4 +1,4 @@
-{% extends "main_app/base.html" %}
+{% extends "mainlanding/base.html" %}
 <!--<!DOCTYPE html>-->
 <!--<html lang="en">-->
 <!--<head>-->
@@ -50,8 +50,20 @@
 <h1> Add Customer </h1>
 <form name = "add_customer" action = "{% url 'add_customer' %} " method = "POST" >
      {{ form.as_p }}
+    <input type="submit"  value="Save">
+    <div>
+        <label> <input type="radio" onclick="location.href='{% url 'individual' %}'" name="select-type" value="individual">Individual</label>
+    </div>
+    <div>
+        <label> <input type="radio" onclick="location.href='{% url 'business' %}'" name="select-type" value="Business">Business</label>
+    </div>
+
 </form>
-    <button type="submit" onclick="location.href='{% url 'individual' %}'" name='individual'>Individual</button>
-    <button type="submit" onclick="location.href='{% url 'business' %}'" name='business'>Business</button>
+
+
+
+
+
+
 {% endblock %}
 
