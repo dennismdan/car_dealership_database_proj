@@ -92,11 +92,10 @@ class QueryVehicleForm(forms.Form):
         user_role = os.environ["USER_ROLE"]
 
         if user_role in workers[0:2]:
-            self.fields['VIN'] = VIN
             self.fields['sold_unsold_filter'] = sold_unsold_filter
             self.initial["sold_unsold_filter"] = "all"
 
-        elif user_role in workers:
+        if user_role in workers:
             self.fields['VIN'] = VIN
 
     def extract_data(self):
