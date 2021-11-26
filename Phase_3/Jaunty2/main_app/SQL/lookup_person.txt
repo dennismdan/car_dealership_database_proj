@@ -1,0 +1,2 @@
+SELECT  First_name, Last_name, Phone_number, Email, Street_address, City, State, Postal_code FROM Customer INNER JOIN Person
+ON Customer.customer_id = Person.customer_id
