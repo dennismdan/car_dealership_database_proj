@@ -4,7 +4,7 @@ from django import forms
 import main_app.views
 
 from django.core.exceptions import ValidationError
-from main_app.utils import get_colors,get_manufacturer_names
+from main_app.utils import get_colors,get_manufacturer_names,run_reports
 import datetime
 import os
 
@@ -113,10 +113,21 @@ class QueryVehicleForm(forms.Form):
 
 
 class ReportTypes(forms.Form):
-   report_choices = ((1, "Sales by Color"), (2, "Sales by Type"), (3, "Sales by Manufacturer"),
-                     (4, "Gross Customer Income"), (5, "Average Time in Inventory"), (6, "Part Statistics"),
-                     (7, "Below Cost Sales"), (8, "Repairs By Manufacturer/Type/Model"), (9, "Monthly Sales"),)
-   reports = forms.ChoiceField(choices=report_choices)
+    report_choices = ((0, "Sales by Color"), (1, "Sales by Type"), (2, "Sales by Manufacturer"),
+                   (3, "Gross Customer Income"), (4, "Average Time in Inventory"), (5, "Part Statistics"),
+                     (6, "Below Cost Sales"), (7, "Repairs By Manufacturer/Type/Model"), (8, "Monthly Sales"),)
+    reports = forms.ChoiceField(choices=report_choices)
+
+
+    def extract_data(self):
+        data = self.data.dict()
+        data['reports'] = self.report_choices[int(data['reports'])][1]
+        # data['Manufacturer_name'] = self.manufacturer_names[int(data['Manufacturer_name'])][1]
+        # data['Color'] = self.color_choices[int(data['Color'])][1]
+        # user_role = os.environ["USER_ROLE"]
+
+        return data
+
 
 
 class FilterBy(forms.Form):
@@ -170,12 +181,42 @@ class AddVehicle(forms.Form):
 
 
 class AddRepair(forms.Form):
-  VIN = forms.CharField()
-  Customer_id = forms.CharField()
-  Start_date = forms.DateField()
-  Labor_charges = forms.CharField()
-  Total_cost = forms.CharField()
-  Description = forms.CharField()
-  Completion_date = forms.DateField()
-  Odometer_reading = forms.CharField()
-  Username = forms.CharField()
+    VIN = forms.CharField(label="VIN")
+    Customer_id = forms.CharField(label="Customer Id")
+    Start_date = forms.DateField()
+    Labor_charges = forms.CharField(label="Labor_charges", required=False)
+    Total_cost = forms.CharField(label="Total_cost", required=False)
+    Description = forms.CharField(label="Description")
+    Completion_date = forms.DateField(label="Completion_date", required=False)
+    Odometer_reading = forms.CharField(label="Odometer_reading")
+    Username = forms.CharField(label="Username")
+
+    def __init__(self, *args, **kwargs):
+        super(AddRepair, self).__init__(*args, **kwargs)
+        user_role = os.environ["USER_ROLE"]
+
+        if user_role in workers[0] :
+            VIN = self.VIN
+            Customer_id = self.Customer_id
+            Start_date = self.Start_date
+            Labor_charges = self.Labor_charges
+            Total_cost = self.Total_cost
+            Description = self.Description
+            Completion_date = self.Completion_date
+            Odometer_reading = self.Odometer_reading
+            Username = self.Username
+
+    def extract_data(self):
+        data = self.data.dict()
+        data['Vehicle_type'] = self.vehicle_choices[int(data['Vehicle_type'])][1]
+        data['Manufacturer_name'] = self.manufacturer_names[int(data['Manufacturer_name'])][1]
+        data['Color'] = self.color_choices[int(data['Color'])][1]
+        user_role = os.environ["USER_ROLE"]
+
+        if user_role in workers[0:2]:
+            data['sold_unsold_filter'] = self.sold_unsold_options[int(data['sold_unsold_filter'])][1]
+
+        return data
+
+
+

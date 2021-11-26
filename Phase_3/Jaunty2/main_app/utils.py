@@ -144,3 +144,56 @@ def add_repair():
     query = gen_query_add_row("Repair", ())
 
     insert_row(query, (1, 22, 2021-11-20, "xyx", 123, 'ServiceWriter'))
+
+
+def run_reports(user_input):
+
+    # $MaxSaleDate = "SELECT MAX(Sale_date)from Sale"
+
+    report_fields = ["Sales by Color", "Sales by Type", "Sales by Manufacturer", "Gross Customer Income",
+                     "Average Time in Inventory", "Part Statistics", "Below Cost Sales",
+                     "Repairs By Manufacturer/Type/Model", "Monthly Sales"]
+
+
+    for key, val in user_input.items():
+
+        # if (val != "all") and (val != ""):
+        if val in report_fields:
+            if val == "Sales by Color":
+                query = get_query_from_file("sale_by_color.txt")
+                # print(query)
+                return query
+
+            if val == "Sales by Type":
+                query = get_query_from_file("sale_by_type.txt")
+                return query
+
+            if val == "Sales by Manufacturer":
+                query = get_query_from_file("sale_by_manufacturer.txt")
+                return query
+
+            if val == "Gross Customer Income":
+                query = get_query_from_file("gross_customer_income.txt")
+                return query
+
+            if val == "Average Time in Inventory":
+                query = get_query_from_file("avg_time_in_inventory.txt")
+                return query
+
+            if val == "Part Statistics":
+                query = get_query_from_file("part_statistics.txt")
+                return query
+
+            if val == "Below Cost Sales":
+                query = get_query_from_file("below_cost_sales.txt")
+                return query
+
+            if val == "Repairs By Manufacturer/Type/Model":
+                query = get_query_from_file("repairs_by_manufacturer_type_model.txt")
+                return query
+
+            if val == "Monthly Sales":
+                query = get_query_from_file("monthly_sales.txt")
+                return query
+
+

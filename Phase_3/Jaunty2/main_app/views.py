@@ -4,7 +4,7 @@ from django.shortcuts import render
 from django.http import HttpResponseRedirect
 from .forms import LoginForm, QueryVehicleForm, ReportTypes, LookupCustomer, FilterBy, AddCustomer, Individual, Business
 from .forms import AddRepair
-from .utils import run_query, get_search_vehicle_query
+from .utils import run_query, get_search_vehicle_query, run_reports
 from .runtime_constants import USER_ROLE
 
 USER_ROLE = os.environ["USER_ROLE"]
@@ -79,9 +79,35 @@ def base(request):
 
 
 def reports(request):
-    print("reports")
+    data = []
+    header = []
     form = ReportTypes()
-    return render(request, 'mainlanding/reports.html', {'form': form})
+    home_status = "Get Reports."
+    if request.method == 'POST':
+        form = ReportTypes(request.POST)
+
+        if form.is_valid():
+
+            user_input = form.extract_data()
+            query = run_reports(user_input)  # generate query
+
+            data, header = run_query(query)  # run query
+            if len(data) == 0:
+                home_status = "No data available"
+            else:
+                home_status = "Results found and displayed below."
+        else:
+            home_status = "Inputs fields need to be corrected."
+    else:
+        form = ReportTypes()
+
+    return render(request, 'mainlanding/reports.html',
+                  {'form': form,
+                   'data': data,
+                   'status': home_status,
+                   'user': os.environ["USER_ROLE"],
+                   'header': header})
+
 
 
 def repairs(request):
