@@ -2,7 +2,7 @@ import os
 
 from django.shortcuts import render
 from django.http import HttpResponseRedirect
-from .forms import LoginForm, QueryVehicleForm, ReportTypes, LookupCustomer, FilterBy, AddCustomer, Individual, Business
+from .forms import LoginForm, QueryVehicleForm, ReportTypes, LookupCustomer, FilterBy, AddCustomer
 from .forms import AddRepair
 from .utils import run_query, get_search_vehicle_query
 from .runtime_constants import USER_ROLE
@@ -136,29 +136,20 @@ def filter_vehicles(request):
 #                    'data': data,
 #                    'header': header})
 
-def individual(request):
-    view_inventory = False
-    data = []
-    header = []
+def update_add_customer(request, ):
+    home_status = "Setting the add customer template with individual or business."
+    print(home_status)
+    path = request.path
 
-    form = Individual()
+    customer_type = path[1:-1]
+    print("Customer set to: ",customer_type)
 
-    return render(request, 'mainlanding/individual.html',
+    os.environ["ADD_USER_TYPE"] = customer_type
+    form = AddCustomer()
+
+    return render(request, 'mainlanding/add_customer.html',
                   {'form': form,
-                   'data': data,
-                   'header': header})
-
-def business(request):
-    view_inventory = False
-    data = []
-    header = []
-
-    form = Business()
-
-    return render(request, 'mainlanding/business.html',
-                  {'form': form,
-                   'data': data,
-                   'header': header})
+                   'customer':customer_type})
 
 
 def loggedin(request):
