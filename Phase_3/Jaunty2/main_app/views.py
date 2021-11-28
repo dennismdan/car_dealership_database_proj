@@ -74,7 +74,8 @@ def home(request):
 
 def base(request):
     print("base")
-    return render(request, 'mainlanding/base.html')
+    return render(request, 'mainlanding/base.html',{
+                   'user':os.environ["USER_ROLE"]})
 
 
 # def add_vehicle(request):
@@ -101,17 +102,23 @@ def base(request):
 def reports(request):
     print("reports")
     form = ReportTypes()
-    return render(request, 'mainlanding/reports.html', {'form': form})
+
+    return render(request, 'mainlanding/reports.html',
+                  {'form': form,
+                   'user':os.environ["USER_ROLE"]})
 
 
 def repairs(request):
     print("repairs")
-    return render(request, 'mainlanding/repairs.html')
+    return render(request, 'mainlanding/repairs.html',
+                  {
+                   'user':os.environ["USER_ROLE"]})
 
 
 def click(request):
     print("clicked")
-    return render(request, 'mainlanding/clicked.html')
+    return render(request, 'mainlanding/clicked.html',
+                  {'user':os.environ["USER_ROLE"]})
 
 
 def login(request):
@@ -125,12 +132,17 @@ def login(request):
     current_role = os.environ["USER_ROLE"]
 
     return render(request, 'mainlanding/loging.html',
-                  {"users":users,"current_role":current_role})
+                  {"users":users,
+                   "current_role":current_role,
+                  'user':os.environ["USER_ROLE"]
+                   })
 
 def filter_vehicles(request):
     print("filter")
     form = FilterBy()
-    return render(request, 'mainlanding/filter.html', {'form': form})
+    return render(request, 'mainlanding/filter.html',
+                  {'form': form,
+                   'user':os.environ["USER_ROLE"]})
 
 
 # def lookup_customer(request):
@@ -170,6 +182,7 @@ def update_add_customer(request, ):
 
     return render(request, 'mainlanding/add_customer.html',
                   {'form': form,
+                  'user':os.environ["USER_ROLE"],
                    'customer':customer_type})
 
 
@@ -208,6 +221,7 @@ def add_repair(request):
     return render(request, 'mainlanding/add_repair.html',
                   {'form': form,
                    'data': data,
+                  'user':os.environ["USER_ROLE"],
                    'header': header})
 
 
@@ -314,7 +328,8 @@ def sell_vehicle(request,vin):
     form = SellVehicle()
     context = {
         "form":form,
-        "vin":vin
+        "vin":vin,
+        'user': os.environ["USER_ROLE"]
                }
     print("Selling vehicle with vin: ", vin)
     return render(request, 'mainlanding/sell_vehicle.html',context)
