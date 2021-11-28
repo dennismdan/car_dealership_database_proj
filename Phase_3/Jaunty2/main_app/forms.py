@@ -41,6 +41,7 @@ def validate_decimals(value):
             ('%(value)s is not a float'),
             params={'value': value})
 
+
 class QueryVehicleForm(forms.Form):
     '''
    TODO: right now color chices are hard coded
@@ -221,3 +222,15 @@ class AddRepair(forms.Form):
   Completion_date = forms.DateField()
   Odometer_reading = forms.CharField()
   Username = forms.CharField()
+
+
+class SellVehicle(forms.Form):
+    VIN = forms.CharField()
+    Year = forms.CharField()
+    Model_name = forms.CharField()
+    Description = forms.CharField()
+    Invoice_price = forms.CharField()
+    List_price = forms.CharField()
+    Inventory_date = forms.CharField()
+    Manufacturer_name = forms.CharField()
+    Username = forms.CharField()

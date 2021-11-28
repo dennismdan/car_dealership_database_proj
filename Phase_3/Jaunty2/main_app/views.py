@@ -2,24 +2,41 @@ import os
 
 from django.shortcuts import render
 from django.http import HttpResponseRedirect
-from .forms import LoginForm, QueryVehicleForm, ReportTypes, LookupCustomer, FilterBy, AddCustomer
+from .forms import (LoginForm,
+                    QueryVehicleForm,
+                    ReportTypes,
+                    LookupCustomer,
+                    FilterBy,
+                    AddCustomer,
+                    SellVehicle)
 from .forms import AddRepair
-from .utils import run_query, get_search_vehicle_query
+from .utils import (run_query,
+                    get_search_vehicle_query,
+                    get_detailed_vehicle_query,
+                    cleanup_null_cols,
+                    get_sales_query,
+                    get_repair_query,
+                    get_data_for_template)
 from .runtime_constants import USER_ROLE
 
 USER_ROLE = os.environ["USER_ROLE"]
+#home_form_state = None #instantiate global variable
+
+
 '''
 TODO: 
 list all business constraint 
 make sure that we implement ALL constraints in our code 
 https://jacobian.org/2010/feb/28/dynamic-form-generation/
+https://javascript.tutorialink.com/using-javascript-onclick-event-to-pass-data-to-views-py-in-django/
 '''
 
 
 def home(request):
+
     data = []
     header = []
-    form = QueryVehicleForm()
+
     home_status = "Search available inventory."
 
     if request.method == 'POST':
@@ -29,7 +46,9 @@ def home(request):
             print("POST statement from home page")
             user_input = form.extract_data()
             query = get_search_vehicle_query(user_input) # generate query
+
             data, header = run_query(query) # run query
+
 
             if len(data) == 0:
                 home_status = "Sorry, it looks like we don’t have that in stock!"
@@ -40,6 +59,7 @@ def home(request):
 
     else:
         form = QueryVehicleForm()
+
 
     vehicle_count = run_query("SELECT COUNT(*) FROM Vehicle")[0][0][0]
 
@@ -95,12 +115,13 @@ def click(request):
 
 
 def login(request):
-    users = {"unauth_user": "Regular User",
+    users = {"regular_user": "Regular User",
              "manager": "Manager",
-             "inventory_clerck": "Inventory Clerk",
+             "inventory_clerk": "Inventory Clerk",
              "service_writer": "Service Writer",
              "sales_person": "Sales Person",
              "owner": "Owner"}
+
     current_role = os.environ["USER_ROLE"]
 
     return render(request, 'mainlanding/loging.html',
@@ -138,7 +159,7 @@ def filter_vehicles(request):
 
 def update_add_customer(request, ):
     home_status = "Setting the add customer template with individual or business."
-    print(home_status)
+
     path = request.path
 
     customer_type = path[1:-1]
@@ -159,6 +180,7 @@ def loggedin(request):
         # Get the posted form
         form = LoginForm(request.POST)
         user_input = form.data.dict()
+
         print("User Logging in as: ",user_input["users"])
         os.environ["USER_ROLE"] = user_input["users"]
 
@@ -195,27 +217,32 @@ def total_vehicles_available():
 def add_vehicle():
     pass
 
-def vehicle_details(request):
+def vehicle_details(request,vin):
     '''
     https://stackoverflow.com/questions/29153593/passing-variable-from-django-template-to-view
     :param request:
     :return:
     '''
-    data = []
-    header = []
-    form = QueryVehicleForm()
-    home_status = "Search available inventory."
 
-    if request.method == 'GET':
-        form = QueryVehicleForm(request.GET)
-        print(form)
-    else:
-        pass
+    sales_data = {'header':[], 'data':[], "status":""}
+    repair_data = {'header':[], 'data':[], "status":""}
 
-    return render(request, 'mainlanding/vehicle_details.html',
-                  {"vin":"vin",
-                   'data': data,
-                   'header': header})
+    vehicle_data = get_data_for_template(vin,query_type="vehicle")
+
+    if os.environ["USER_ROLE"] in ["manager","owner"]:
+        sales_data = get_data_for_template(vin,query_type="sales")
+        repair_data = get_data_for_template(vin,query_type="repair")
+
+    context = {"user": os.environ["USER_ROLE"],
+               "vin":vin,
+               "full_users":["manager","owner"],
+               'vehicle_data': vehicle_data,
+               'sales_data': sales_data,
+               'repair_data': repair_data}
+
+    return render(request,
+                  'mainlanding/vehicle_details.html',
+                  context)
 
 def add_customer(request):
     data = []
@@ -282,3 +309,12 @@ def lookup_customer(request):
                    'status':home_status,
                    'user':os.environ["USER_ROLE"],
                    'header': header})
+
+def sell_vehicle(request,vin):
+    form = SellVehicle()
+    context = {
+        "form":form,
+        "vin":vin
+               }
+    print("Selling vehicle with vin: ", vin)
+    return render(request, 'mainlanding/sell_vehicle.html',context)

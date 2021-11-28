@@ -46,13 +46,14 @@
         {% endfor %}
     </tr>
     {% for row in data %}
-        <tr>
+        <tr onclick="location.href='{% url 'vehicle_details' row.0 %}'" name='login'>
         {% for cell in row %}
             <td> {{ cell }}</td>
         {% endfor %}
         </tr>
     {% endfor %}
 </table>
+
 
 {% endblock %}
 

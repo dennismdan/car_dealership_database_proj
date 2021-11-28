@@ -4,6 +4,8 @@ SERVER = os.getenv("DB_SERVER", "MAORYZEN7\SQLEXPRESS")
 
 USER_ROLE = os.getenv("USER_ROLE", "regular_user")
 
+WORKERS = ["owner","manager","inventory_clerk","sales_person","service_writer"]
+
 class EnvError(Exception):
     pass
 

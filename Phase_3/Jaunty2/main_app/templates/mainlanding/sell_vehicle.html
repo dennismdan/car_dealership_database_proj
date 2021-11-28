@@ -1,0 +1,30 @@
+{% extends "mainlanding/base.html" %}
+
+{% block style %}
+        .home {
+            color: #818181;
+            }
+        .add_vehicle {
+            color: #f5f5f5;
+            }
+        .reports {
+            color: #818181;
+            }
+        .repairs {
+            color: #818181;
+            }
+{% endblock %}
+
+{% block title %} Add Vehicle {% endblock %}
+
+{% block content %}
+<h1> Selling Vehicle with VIN: {{ vin }}</h1>
+
+<form name = "add_vehicle" action = "{% url 'sell_vehicle' vin %}" method = "POST" >{% csrf_token %}
+    {{ form.as_p }}
+    <button type="submit">Sell Vehicle</button>
+
+</form>
+
+{% endblock %}
+

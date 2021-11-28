@@ -77,8 +77,28 @@ def get_search_vehicle_query(user_input:dict)->str:
     if len(where_clause) > 0:
         query += " WHERE "
         query += " AND ".join(where_clause)
-
+    query += " ORDER BY VIN ASC"
     return query
+
+def cleanup_null_cols(row:tuple,columns:list):
+    """
+    Function will clean up a row that has null values and remove columsn with null values
+
+    :param row:
+    :param columns:
+    :return:
+    """
+    row_vals = []
+    cols = []
+
+    for i in range(len(row)):
+        if row[i] is not None:
+            row_vals.append(row[i])
+            cols.append(columns[i])
+
+    assert len(row_vals)==len(cols)
+
+    return tuple(row_vals),cols
 
 def run_query(query:str,return_results:bool = True)->List[tuple]:
     '''
@@ -90,8 +110,8 @@ def run_query(query:str,return_results:bool = True)->List[tuple]:
     cursor = conn.cursor()
     cursor.execute(query)
 
-    results = None
-    header = None
+    results:List[tuple] = None
+    header:List[str] = None
     if return_results:
         results = cursor.fetchall()
         header = [column[0] for column in cursor.description]
@@ -130,6 +150,7 @@ def get_query_from_file(file_name:str)->str:
     with open(file_path, 'r') as file:
         query_string = file.read().replace('\n', ' ').replace('\t',' ')
         query_string = query_string.replace("  "," ").replace("   "," ")
+
     return query_string
 
 def get_manufacturer_names():
@@ -144,7 +165,6 @@ def add_repair():
     query = gen_query_add_row("Repair", ())
 
     insert_row(query, (1, 22, 2021-11-20, "xyx", 123, 'ServiceWriter'))
-
 
 def lookup_customer_query(user_input:dict)->str:
     '''
@@ -172,3 +192,62 @@ def lookup_customer_query(user_input:dict)->str:
         query += " AND ".join(where_clause)
 
     return query
+
+def get_detailed_vehicle_query(vin: str):
+    user_role = os.environ["USER_ROLE"]
+
+    if user_role not in ["manager","owner"]:
+        query_addition = f" AND v.VIN = '{vin}';"
+    else:
+        query_addition = f" v.VIN = '{vin}';"
+
+
+    if user_role in ["manager","owner"]:
+        query = get_query_from_file("vehicle_detailed_manager.txt")
+
+    elif user_role == "inventory_clerk":
+        print("getting query for ivc")
+        query = get_query_from_file("vehicle_detailed_inventory_clerk.txt")
+
+    elif user_role in ["sales_person","service_writer"]:
+        query = get_query_from_file("vehicle_detailed_worker.txt")
+
+    else:
+        query = get_query_from_file("vehicle_detailed_regular.txt")
+
+    return query+query_addition
+
+def get_sales_query(vin:str):
+    query_addition = f" WHERE s.VIN IS NOT NULL AND s.VIN = '{vin}';"
+    query = get_query_from_file("vehicle_detailed_sales.txt")
+    return query+query_addition
+
+def get_repair_query(vin:str):
+    query_addition = f" WHERE r.VIN IS NOT NULL AND r.VIN = '{vin}';"
+    query = get_query_from_file("vehicle_detailed_repair.txt")
+    return query+query_addition
+
+def get_data_for_template(vin:str,query_type:str):
+    # for repairs details
+    print("getting data for: ", query_type)
+
+    if query_type == "vehicle":
+        query = get_detailed_vehicle_query(vin)
+    elif query_type == "sales":
+        query = get_sales_query(vin)
+    elif query_type == "repair":
+        query = get_repair_query(vin)
+
+    data, cols = run_query(query)
+
+    if len(data) > 0:
+        data, cols = cleanup_null_cols(data[0], cols)
+        status = ""
+    elif (len(data) == 0) and (query_type == "vehicle"):
+        cols = []
+        status = "The vehicle is no longer in inventory because it was sold."
+    else:
+        cols = []
+        status = "No results found for: "+query_type
+
+    return {'header':cols, 'data':data, "status":status}

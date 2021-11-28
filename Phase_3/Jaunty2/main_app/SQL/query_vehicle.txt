@@ -6,4 +6,4 @@ UNION	SELECT SUV.VIN, 'SUV' AS Vehicle_type FROM SUV
 UNION	SELECT Truck.VIN, 'Truck' AS Vehicle_type FROM Truck
 UNION	SELECT Convertible.VIN, 'Convertible' AS Vehicle_type FROM Convertible
 UNION	SELECT VanMinivan.VIN, 'VanMinivan' AS Vehicle_type FROM VanMinivan
-) AS VehicleType ON v.VIN= vehicleType.VIN
+) AS VehicleType ON v.VIN = vehicleType.VIN
