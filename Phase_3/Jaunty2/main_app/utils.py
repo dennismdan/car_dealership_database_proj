@@ -139,11 +139,47 @@ def get_manufacturer_names():
     manufacturers.append((len(manufacturers), "all"))
     return manufacturers
 
-def add_repair():
+def add_repair(user_input):
+    #query = get_query_from_file("add_repair.txt")
 
-    query = gen_query_add_row("Repair", ())
+    repair_fields = ["VIN", "Customer Id", "Start_date", "Labor_charges", "Total_cost", "Description",
+                     "Completion_date", "Odometer_reading", "Username"]
+    row_tuple = []
+    for key, val in user_input.items():
 
-    insert_row(query, (1, 22, 2021-11-20, "xyx", 123, 'ServiceWriter'))
+        if (val != "all") and (val != ""):
+            if key in repair_fields:
+                if key == "VIN":
+                    row_tuple.append(f"(v.VIN='{val}')")
+
+
+            if key == "Customer Id":
+                where_clause.append(f"(List_price > {user_input['min_price']})")
+            if key == "max_price":
+                where_clause.append(f"(List_price < {user_input['max_price']})")
+
+            if val == "sold":  # for sold unsold filter
+                where_clause.append(f"(v.VIN IN ( SELECT s.VIN FROM Sale s))")
+            elif val == "unsold":
+                where_clause.append(f"(v.VIN NOT IN ( SELECT s.VIN FROM Sale s))")
+
+            if key == "Color":
+                where_clause.append(
+                    f"((SELECT DISTINCT STRING_AGG(c.Color,' | ') FROM Color c WHERE c.VIN=v.VIN) LIKE '%{val}%')")
+
+            if key == "keywords":
+                keywords = user_input["keywords"].split(',')
+                for word in keywords:
+                    where_clause.append(f"(Description LIKE '%{word}%')")
+
+
+
+
+
+    query = gen_query_add_row("Repair", user_input)
+    return query
+
+
 
 
 def run_reports(user_input):

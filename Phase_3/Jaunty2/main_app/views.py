@@ -4,7 +4,7 @@ from django.shortcuts import render
 from django.http import HttpResponseRedirect
 from .forms import LoginForm, QueryVehicleForm, ReportTypes, LookupCustomer, FilterBy, AddCustomer, Individual, Business
 from .forms import AddRepair
-from .utils import run_query, get_search_vehicle_query, run_reports
+from .utils import run_query, get_search_vehicle_query, run_reports,insert_row
 from .runtime_constants import USER_ROLE
 
 USER_ROLE = os.environ["USER_ROLE"]
@@ -212,11 +212,28 @@ def loggedin(request):
                    'header': header})
 
 def add_repair(request):
-    view_inventory = False
-    data = []
-    header = []
+    data = None
+    header = None
+    if request.method == 'POST':
+        form = AddRepair(request.POST)
 
-    form = AddRepair()
+        if form.is_valid():
+
+            user_input = form.extract_data()
+            print(user_input)
+            query = add_repair(user_input)  # generate query
+            data = insert_row(query)
+            # data = insert_row(query, "user_input")
+            #data, header = run_query(query)  # run query
+            if len(data) == 0:
+                home_status = "No data available"
+            else:
+                home_status = "Results found and displayed below."
+        else:
+            home_status = "Inputs fields need to be corrected."
+
+    else:
+        form = AddRepair()
 
     return render(request, 'mainlanding/add_repair.html',
                   {'form': form,
