@@ -307,7 +307,7 @@ def add_customer(request):
             print("Add New Customer")
             user_input = form.extract_data()
             query = add_customer_query(user_input) # generate query, get_search_vehicle_query(user_input)
-            data, header = run_query(query) # run query
+            data, header = insert_row(query) # run query
 
             if len(data) == 0:
                 home_status = "Please fill the required field"

@@ -281,10 +281,9 @@ def run_reports(user_input):
 
 
 
-    insert_row(query, (1, 22, 2021-11-20, "xyx", 123, 'ServiceWriter'))
 
 
-def lookup_customer_query(user_input:dict)->str:
+def add_customer_query(user_input:dict)->str:
     '''
     :param user_input: dictionary of form {col1:value,col2:value}
     :return:
@@ -292,22 +291,17 @@ def lookup_customer_query(user_input:dict)->str:
     TODO: format query per project structure
     '''
 
-    query = get_query_from_file("lookup_person.txt")
+    add_user_type = os.environ["ADD_USER_TYPE"]
 
-    customer_fields = ["drivers_licens_nr", "tin"]
-    where_clause = []
+
     for key, val in user_input.items():
 
-        if key in customer_fields:
-                if key == "drivers_licens_nr":
-                    where_clause.append(f"(Driver_license='{val}')")
-                else:
-                    where_clause.append(f"({key}='{val}')")
+        if add_user_type == "individual":
+            query = gen_query_add_row('Person', )
+            return query
 
 
-    if len(where_clause) > 0:
-        query += " WHERE "
-        query += " AND ".join(where_clause)
+
 
     return query
 

@@ -150,10 +150,10 @@ class LookupCustomer(forms.Form):
 
    def extract_data(self):
        data = self.data.dict()
-       data['Driver_license'] = self.drivers_licens_nr
-       data['TIN'] = self.tin
-
-       user_role = os.environ["USER_ROLE"]
+       # data['Driver_license'] = self.drivers_licens_nr
+       # data['TIN'] = self.tin
+       #
+       # user_role = os.environ["USER_ROLE"]
 
 
        return data
@@ -202,7 +202,11 @@ class AddCustomer(forms.Form):
 
           self.fields[name_list[i]] = form_list[i]
 
+  def extract_data(self):
+      data = self.data.dict()
 
+
+      return data
   def clean_data(self):
         pass
 
