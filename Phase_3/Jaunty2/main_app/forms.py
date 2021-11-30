@@ -240,11 +240,13 @@ class AddCustomer(forms.Form):
       data:dict = self.data.dict()
 
       if "TIN" in data.keys():
-          row = (data["bu1"],data["bu2"],data["bu3"])
+          row_customer_type = (data["bu1"],data["bu2"],data["bu3"])
       else:
-          row = (data["pe1"], data["pe2"], data["pe3"])
+          row_customer_type = (data["pe1"], data["pe2"], data["pe3"])
 
-      return row
+      row_customer = (data["cu1"],data["cu2"])
+
+      return row_customer, row_customer_type
 
 class AddVehicle(forms.Form):
     VIN = forms.CharField()
