@@ -4,9 +4,12 @@ from django import forms
 import main_app.views
 
 from django.core.exceptions import ValidationError
-from main_app.utils import get_colors,get_manufacturer_names,run_reports
-import datetime
+from main_app.utils import get_colors,get_manufacturer_names,run_reports, find_customer, get_customer_id, run_query
+from datetime import datetime, date, timedelta
+from pytz import timezone
 import os
+
+timezone_est = timezone('EST')
 
 workers = ["owner","manager","inventory_clerk","sales_person","service_writer"] # only role "regular_user" missing
 
@@ -41,6 +44,60 @@ def validate_decimals(value):
             ('%(value)s is not a float'),
             params={'value': value})
 
+def price_check(sales_price):
+    invoice_price = round(float(os.environ["SALES_INVOICE_PRICE"]),2)
+
+    if os.environ["USER_ROLE"]=="owner":
+        return sales_price
+
+    elif sales_price <= invoice_price*0.95:
+        raise ValidationError(
+            (f'Sales price of {sales_price} is <= than {invoice_price*0.95} (invoice_price*0.95). Only the owner can perform this sell'))
+    else:
+        return sales_price
+
+def customer_lookup(id):
+
+    if id == "":
+        return id
+    else:
+        data,_,_ = find_customer(id,id)
+
+        if len(data)==0:
+            raise ValidationError(
+                ('Customer not found, please add customer'))
+        else:
+            return id
+
+def date_check(date):
+    today = datetime.now(timezone_est).date()
+    tomorrow = today + timedelta(days=1)
+    far_past = today - timedelta(days=7)
+
+    if  date >= tomorrow:
+        raise ValidationError(
+            ('Sale date cannot be in the future, unless you are a time traveler :P'))
+    elif date <= far_past:
+        raise ValidationError(
+            ('Sale date cannot be more than a week into the past, unless you want to travel back to the future after you sell it in the past :P'))
+    else:
+        return date
+
+def sales_person_lookup(sales_person_username):
+    query = f"SELECT Username FROM EmployeeUser Where Username = '{sales_person_username}'"
+    data, _  = run_query(query)
+
+    if len(data)==0:
+        raise ValidationError((
+            f"Salesperson with username {sales_person_username} not currently on staff"
+        ))
+    else:
+        return sales_person_username
+
+class LoginForm(forms.Form):
+    user = forms.CharField(max_length=100)
+    password = forms.CharField(widget=forms.PasswordInput())
+
 class QueryVehicleForm(forms.Form):
     '''
    TODO: right now color chices are hard coded
@@ -51,7 +108,7 @@ class QueryVehicleForm(forms.Form):
     vehicle_choices = [(0,"Car"),(1,"Convertible"),(2,"SUV"),(3,"Truck"),(4,"VanMinivan"),(5,"all")]
     sold_unsold_options = [(0, "all"), (1, "sold"), (2, "unsold")]
     manufacturer_names = get_manufacturer_names()
-    year_choices = [(r, r) for r in range(1920, datetime.date.today().year + 1)]
+    year_choices = [(r, r) for r in range(1920, date.today().year + 1)]
     year_choices.append((0,0))
 
     Vehicle_type = forms.ChoiceField(choices=vehicle_choices,
@@ -66,7 +123,7 @@ class QueryVehicleForm(forms.Form):
                               initial=len(color_choices)-1,
                               required=False)
     Year = forms.IntegerField(min_value=1920,
-                                    max_value=datetime.date.today().year,
+                                    max_value= date.today().year,
                                     label="Model Year",
                                     required=False)
     min_price = forms.DecimalField(decimal_places=2,
@@ -138,24 +195,8 @@ class LookupCustomer(forms.Form):
    drivers_licens_nr = forms.IntegerField(required=False)
    tin = forms.IntegerField(required=False)
 
-   # def __init__(self, *args, **kwargs):
-   #
-   #     # super(LookupCustomer, self).__init__(*args, **kwargs)
-   #     #
-   #     #
-   #     #
-   #     # user_role = os.environ["USER_ROLE"]
-       #
-
-
    def extract_data(self):
        data = self.data.dict()
-       # data['Driver_license'] = self.drivers_licens_nr
-       # data['TIN'] = self.tin
-       #
-       # user_role = os.environ["USER_ROLE"]
-
-
        return data
 
 
@@ -202,14 +243,21 @@ class AddCustomer(forms.Form):
 
           self.fields[name_list[i]] = form_list[i]
 
-  def extract_data(self):
-      data = self.data.dict()
 
-
-      return data
   def clean_data(self):
         pass
 
+  def extract_data(self):
+      data:dict = self.data.dict()
+
+      if "TIN" in data.keys():
+          row_customer_type = (data["bu1"],data["bu2"],data["bu3"])
+      else:
+          row_customer_type = (data["pe1"], data["pe2"], data["pe3"])
+
+      row_customer = (data["cu1"],data["cu2"])
+
+      return row_customer, row_customer_type
 
 class AddVehicle(forms.Form):
     VIN = forms.CharField()
@@ -237,14 +285,47 @@ class AddRepair(forms.Form):
   Odometer_reading = forms.CharField()
   Username = forms.CharField()
 
-
 class SellVehicle(forms.Form):
-    VIN = forms.CharField()
-    Year = forms.CharField()
-    Model_name = forms.CharField()
-    Description = forms.CharField()
-    Invoice_price = forms.CharField()
-    List_price = forms.CharField()
-    Inventory_date = forms.CharField()
-    Manufacturer_name = forms.CharField()
-    Username = forms.CharField()
+
+    VIN = forms.CharField(
+        required=True,
+        initial=int(os.environ["SALES_VIN"]),
+    )
+    sales_person_username = forms.CharField(
+        validators=[sales_person_lookup],
+        required=True,
+    )
+    licence_nr = forms.IntegerField(
+        validators=[customer_lookup]
+    )
+
+    TIN = forms.IntegerField(
+        validators=[customer_lookup]
+    )
+    sales_price = forms.DecimalField(
+        decimal_places=2,
+        label = "Sales Price",
+        required=True,
+        validators=[validate_decimals,price_check])
+
+    sales_date= forms.DateTimeField(
+        label = "Sales date",
+        initial = datetime.now(timezone_est),
+        required=True,
+        validators=[date_check])
+
+    def clean(self):
+        cleaned_data = super().clean()
+        if not cleaned_data.get('licence_nr') and not cleaned_data.get('licence_nr'):  # This will check for None or Empty
+            raise ValidationError({'licence_nr': 'Even one of licence_nr or TIN should have a value.'})
+
+    def extract_data(self):
+        data = self.data.dict()
+        if data["licence_nr"]!= "":
+            id = get_customer_id(data["licence_nr"], "licence_nr")
+        else:
+            id = get_customer_id(data["TIN"], "TIN")
+
+        row = (data["VIN"],data["sales_person_username"],id,data["sales_price"],data["sales_date"])
+
+        return row
