@@ -1,0 +1,24 @@
+SELECT VT AS [Vehicle Type]
+,ISNULL(CAST(AVG(DATEDIFF(DAY,sales.Inventory_date,sales.Sale_date)+1 )AS varchar),'N/A') AS AVERAGE
+from (
+select 'Car' as VT
+UNION select 'SUV' as VT
+UNION select 'Truck' as VT
+UNION select 'Convertible' as VT
+UNION select 'VanMinivan' as VT
+) as UnionVt
+LEFT JOIN (
+SELECT v.VIN,VehicleType.Vehicle_type,s.Sale_date,v.Inventory_date
+FROM Vehicle v
+LEFT JOIN (
+SELECT Car.VIN, 'Car' AS Vehicle_type FROM Car
+UNION	SELECT SUV.VIN, 'SUV' AS Vehicle_type FROM SUV
+UNION	SELECT Truck.VIN, 'Truck' AS Vehicle_type FROM Truck
+UNION	SELECT Convertible.VIN, 'Convertible' AS Vehicle_type FROM Convertible
+UNION	SELECT VanMinivan.VIN, 'VanMinivan' AS Vehicle_type FROM VanMinivan
+) AS VehicleType ON v.VIN= vehicleType.VIN
+LEFT JOIN Sale s ON V.VIN=s.VIN
+WHERE s.Sale_date is not null
+) AS sales ON sales.Vehicle_type = UnionVt.VT
+GROUP BY UnionVt.VT
+ORDER BY VT ASC

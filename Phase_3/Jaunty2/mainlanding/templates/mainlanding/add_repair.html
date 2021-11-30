@@ -1,0 +1,11 @@
+{% extends "mainlanding/base.html" %}
+
+
+{% block content %}
+<h1> Add Repair </h1>
+<form name = "add_repair" action = "{% url 'add_repair' %} " method = "POST" >
+     {{ form.as_p }}
+</form>
+    <button type="submit" onclick="location.href='{% url 'add_repair' %}'" name='add_repair'>Add</button>
+
+{% endblock %}
