@@ -18,12 +18,15 @@ def get_customer_id(customer_unique_nr,customer_type):
     if customer_type == "licence_nr":
         from_clause = "Person"
         where_clause = "Driver_license"
-    else:
+    elif customer_type == "TIN":
         from_clause = "Business"
-        where_clause = "Tin"
+        where_clause = "TIN"
+    else:
+        return ""
 
     if customer_unique_nr == "":
         return ""
+
     else:
         query = f"SELECT Customer_id FROM {from_clause} WHERE {where_clause} = {customer_unique_nr}"
         data,_ = run_query(query)  # run query
@@ -49,7 +52,7 @@ def find_customer(Driver_license,Tin):
         else:
             status = "Person found in the customer registry. Details below."
     elif Tin != "":
-        query = f"SELECT * FROM Business WHERE Tin = {Tin}"
+        query = f"SELECT * FROM Business WHERE TIN = {Tin}"
         data, header = run_query(query)  # run query
         if len(data) == 0:
             header = []
@@ -58,7 +61,6 @@ def find_customer(Driver_license,Tin):
             status = "Business found in the customer registry. Details below."
     else:
         status = "Logic not captured by the code."
-
     return data, header, status
 
 def compose_pyodbc_connection():
@@ -128,7 +130,7 @@ def get_search_vehicle_query(user_input:dict)->str:
     query += " ORDER BY VIN ASC"
     return query
 
-def cleanup_null_cols(row:tuple,columns:list):
+def cleanup_null_cols(data:tuple,columns:list):
     """
     Function will clean up a row that has null values and remove columsn with null values
 
@@ -136,17 +138,28 @@ def cleanup_null_cols(row:tuple,columns:list):
     :param columns:
     :return:
     """
-    row_vals = []
+    new_data = []
     cols = []
 
-    for i in range(len(row)):
-        if row[i] is not None:
-            row_vals.append(row[i])
+    col_idx = []
+
+    for i in range(len(data[0])):
+        col_has_good_vals = []
+        for j in range(len(data)):
+            col_has_good_vals.append(data[j][i] is not None)
+        if any(col_has_good_vals):
+            col_idx.append(i)
             cols.append(columns[i])
 
-    assert len(row_vals)==len(cols)
+    for row in data:
+        new_row = []
+        for col_index in col_idx:
+            new_row.append(row[col_index])
+        new_data.append(tuple(new_row))
 
-    return tuple(row_vals),cols
+    assert len(new_data[0])==len(cols)
+
+    return new_data,cols
 
 def run_query(query:str,return_results:bool = True)->List[tuple]:
     '''
@@ -266,7 +279,6 @@ def run_reports(user_input):
         if val in report_fields:
             if val == "Sales by Color":
                 query = get_query_from_file("sale_by_color.txt")
-                # print(query)
                 return query
 
             if val == "Sales by Type":
@@ -378,9 +390,9 @@ def get_data_for_template(vin:str,query_type:str):
         query = get_repair_query(vin)
 
     data, cols = run_query(query)
-
+    print(data)
     if len(data) > 0:
-        data, cols = cleanup_null_cols(data[0], cols)
+        data, cols = cleanup_null_cols(data, cols)
         status = ""
     elif (len(data) == 0) and (query_type == "vehicle"):
         cols = []

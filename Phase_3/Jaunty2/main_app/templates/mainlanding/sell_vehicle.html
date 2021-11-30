@@ -29,7 +29,11 @@
 <form name = "add_vehicle" action = "{% url 'sell_vehicle' vin %}" method = "POST" >{% csrf_token %}
     {{ form.as_p }}
     <button type="submit">Sell Vehicle</button>
-
 </form>
+<br>
+<h3 class={{message_class}}> {{ status }} </h3>
+<br>
+<br>
+<button class="done" type="submit" onclick="history.back()">Done</button>
 {% endblock %}
 
