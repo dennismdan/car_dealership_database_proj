@@ -10,7 +10,6 @@ https://docs.djangoproject.com/en/3.2/topics/http/urls/
 urlpatterns = [
     path('', views.home, name="home"),
     path('home/', views.home, name="home"),
-    path('add_vehicle/', views.add_vehicle, name="add_vehicle"),
     path('reports/', views.reports, name="reports"),
     path('repairs/', views.repairs, name="repairs"),
     path('login/', views.login, name="login"),
@@ -25,5 +24,6 @@ urlpatterns = [
     path('vehicle_details/<str:vin>/', views.vehicle_details, name="vehicle_details"),
     path('add_repair/', views.add_repair, name="add_repair"),
     path('sell_vehicle/<str:vin>/', views.sell_vehicle, name="sell_vehicle"),
+    path('add_vehicle/', views.add_vehicle, name="add_vehicle"),
 
 ]

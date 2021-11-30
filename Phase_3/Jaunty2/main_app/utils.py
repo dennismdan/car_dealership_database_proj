@@ -28,7 +28,7 @@ def get_customer_id(customer_unique_nr,customer_type):
         return ""
 
     else:
-        query = f"SELECT Customer_id FROM {from_clause} WHERE {where_clause} = {customer_unique_nr}"
+        query = f"SELECT Customer_id FROM {from_clause} WHERE {where_clause} = '{customer_unique_nr}'"
         data,_ = run_query(query)  # run query
 
         if len(data) == 0:
@@ -44,7 +44,7 @@ def find_customer(Driver_license,Tin):
     if Driver_license == "" and Tin == "":
         status = "At least one (driver's license or TIN) must be entered to look up customer."
     elif Driver_license != "":
-        query = f"SELECT * FROM Person WHERE Driver_license = {Driver_license}"
+        query = f"SELECT * FROM Person WHERE Driver_license = '{Driver_license}'"
         data, header = run_query(query)  # run query
         if len(data) == 0:
             header = []
@@ -52,7 +52,7 @@ def find_customer(Driver_license,Tin):
         else:
             status = "Person found in the customer registry. Details below."
     elif Tin != "":
-        query = f"SELECT * FROM Business WHERE TIN = {Tin}"
+        query = f"SELECT * FROM Business WHERE TIN = '{Tin}'"
         data, header = run_query(query)  # run query
         if len(data) == 0:
             header = []
@@ -169,6 +169,7 @@ def run_query(query:str,return_results:bool = True)->List[tuple]:
     connection_str = compose_pyodbc_connection()
     conn = pyodbc.connect(connection_str)
     cursor = conn.cursor()
+
     cursor.execute(query)
 
     results:List[tuple] = None
