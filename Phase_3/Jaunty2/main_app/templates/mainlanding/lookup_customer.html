@@ -1,9 +1,10 @@
 {% extends "mainlanding/base.html" %}
 {% block content %}
- <form name = "lookup_customer" action = "{% url 'lookup_customer' %}" method = "POST" id="form1">
+ <form name = "lookup_customer" action = "{% url 'lookup_customer' %}" method = "POST" id="form1">{% csrf_token %}
     {{ form.as_p }}
  </form>
      <button type="submit" name="submit" form="form1">Lookup Customer</button>
+     <button type="submit" onclick="location.href='{% url 'add_customer' %}'" name='add_customer'>Add Customer</button>
 
 {% endblock %}
 

@@ -2,17 +2,34 @@ import os
 
 from django.shortcuts import render
 from django.http import HttpResponseRedirect
-from .forms import LoginForm, QueryVehicleForm, ReportTypes, LookupCustomer, FilterBy, AddCustomer, Individual, Business
+from .forms import (LoginForm,
+                    QueryVehicleForm,
+                    ReportTypes,
+                    LookupCustomer,
+                    FilterBy,
+                    AddCustomer,
+                    SellVehicle)
 from .forms import AddRepair
 from .utils import run_query, get_search_vehicle_query, run_reports,insert_row
+from .utils import (run_query,
+                    get_search_vehicle_query,
+                    get_detailed_vehicle_query,
+                    cleanup_null_cols,
+                    get_sales_query,
+                    get_repair_query,
+                    get_data_for_template)
 from .runtime_constants import USER_ROLE
 
 USER_ROLE = os.environ["USER_ROLE"]
+#home_form_state = None #instantiate global variable
+
+
 '''
 TODO: 
 list all business constraint 
 make sure that we implement ALL constraints in our code 
 https://jacobian.org/2010/feb/28/dynamic-form-generation/
+https://javascript.tutorialink.com/using-javascript-onclick-event-to-pass-data-to-views-py-in-django/
 '''
 
 
@@ -54,7 +71,8 @@ def home(request):
 
 def base(request):
     print("base")
-    return render(request, 'mainlanding/base.html')
+    return render(request, 'mainlanding/base.html',{
+                   'user':os.environ["USER_ROLE"]})
 
 
 # def add_vehicle(request):
@@ -112,79 +130,79 @@ def reports(request):
 
 def repairs(request):
     print("repairs")
-    return render(request, 'mainlanding/repairs.html')
+    return render(request, 'mainlanding/repairs.html',
+                  {
+                   'user':os.environ["USER_ROLE"]})
 
 
 def click(request):
     print("clicked")
-    return render(request, 'mainlanding/clicked.html')
+    return render(request, 'mainlanding/clicked.html',
+                  {'user':os.environ["USER_ROLE"]})
 
 
 def login(request):
-    users = {"unauth_user": "Regular User",
+    users = {"regular_user": "Regular User",
              "manager": "Manager",
-             "inventory_clerck": "Inventory Clerk",
+             "inventory_clerk": "Inventory Clerk",
              "service_writer": "Service Writer",
              "sales_person": "Sales Person",
              "owner": "Owner"}
     current_role = os.environ["USER_ROLE"]
 
     return render(request, 'mainlanding/loging.html',
-                  {"users":users,"current_role":current_role})
+                  {"users":users,
+                   "current_role":current_role,
+                  'user':os.environ["USER_ROLE"]
+                   })
 
 def filter_vehicles(request):
     print("filter")
     form = FilterBy()
-    return render(request, 'mainlanding/filter.html', {'form': form})
-
-
-def lookup_customer(request):
-    view_inventory = False
-    data = []
-    header = []
-
-    form = LookupCustomer()
-
-    return render(request, 'mainlanding/lookup_customer.html',
+    return render(request, 'mainlanding/filter.html',
                   {'form': form,
-                   'data': data,
-                   'header': header})
+                   'user':os.environ["USER_ROLE"]})
 
-def add_customer(request):
-    view_inventory = False
-    data = []
-    header = []
 
+# def lookup_customer(request):
+#     view_inventory = False
+#     data = []
+#     header = []
+#
+#     form = LookupCustomer()
+#
+#     return render(request, 'mainlanding/lookup_customer.html',
+#                   {'form': form,
+#                    'data': data,
+#                    'header': header})
+
+# def add_customer(request):
+#     view_inventory = False
+#     data = []
+#     header = []
+#
+#     form = AddCustomer()
+#
+#     return render(request, 'mainlanding/add_customer.html',
+#                   {'form': form,
+#                    'data': data,
+#                    'header': header})
+
+def update_add_customer(request, ):
+    home_status = "Setting the add customer template with individual or business."
+
+    path = request.path
+
+    customer_type = path[1:-1]
+    print("Customer set to: ",customer_type)
+
+    os.environ["ADD_USER_TYPE"] = customer_type
     form = AddCustomer()
 
     return render(request, 'mainlanding/add_customer.html',
                   {'form': form,
-                   'data': data,
-                   'header': header})
-
-def individual(request):
-    view_inventory = False
-    data = []
-    header = []
-
-    form = Individual()
-
-    return render(request, 'mainlanding/individual.html',
-                  {'form': form,
-                   'data': data,
-                   'header': header})
-
-def business(request):
-    view_inventory = False
-    data = []
-    header = []
-
-    form = Business()
-
-    return render(request, 'mainlanding/business.html',
-                  {'form': form,
-                   'data': data,
-                   'header': header})
+                  'user':os.environ["USER_ROLE"],
+                   'customer':customer_type})
 
 
 def loggedin(request):
@@ -238,6 +256,7 @@ def add_repair(request):
     return render(request, 'mainlanding/add_repair.html',
                   {'form': form,
                    'data': data,
+                  'user':os.environ["USER_ROLE"],
                    'header': header})
 
 
@@ -247,24 +266,105 @@ def total_vehicles_available():
 def add_vehicle():
     pass
 
-def vehicle_details(request):
+def vehicle_details(request,vin):
     '''
     https://stackoverflow.com/questions/29153593/passing-variable-from-django-template-to-view
     :param request:
     :return:
     '''
+
+    sales_data = {'header':[], 'data':[], "status":""}
+    repair_data = {'header':[], 'data':[], "status":""}
+
+    vehicle_data = get_data_for_template(vin,query_type="vehicle")
+
+    if os.environ["USER_ROLE"] in ["manager","owner"]:
+        sales_data = get_data_for_template(vin,query_type="sales")
+        repair_data = get_data_for_template(vin,query_type="repair")
+
+    context = {"user": os.environ["USER_ROLE"],
+               "vin":vin,
+               "full_users":["manager","owner"],
+               'vehicle_data': vehicle_data,
+               'sales_data': sales_data,
+               'repair_data': repair_data}
+
+    return render(request,
+                  'mainlanding/vehicle_details.html',
+                  context)
+
+def add_customer(request):
     data = []
     header = []
-    form = QueryVehicleForm()
-    home_status = "Search available inventory."
+    form = AddCustomer()
+    home_status = "Add New Customer."
 
-    if request.method == 'GET':
-        form = QueryVehicleForm(request.GET)
-        print(form)
+    if request.method == 'POST':
+        form = AddCustomer(request.POST)
+
+        if form.is_valid():
+            print("Add New Customer")
+            user_input = form.extract_data()
+            query = add_customer_query(user_input) # generate query, get_search_vehicle_query(user_input)
+            data, header = run_query(query) # run query
+
+            if len(data) == 0:
+                home_status = "Please fill the required field"
+            else:
+                home_status = "Added successfully "
+        else:
+            home_status = "Inputs fields need to be corrected."
+
     else:
-        pass
+        form = AddCustomer()
 
-    return render(request, 'mainlanding/vehicle_details.html',
-                  {"vin":"vin",
+    return render(request, 'mainlanding/add_customer.html',
+                  {'form': form,
                    'data': data,
+                   'status':home_status,
+                   'user':os.environ["USER_ROLE"],
                    'header': header})
+
+def lookup_customer(request):
+    data = []
+    header = []
+    form = LookupCustomer()
+    home_status = "Search Customer."
+
+    if request.method == 'POST':
+        form = LookupCustomer(request.POST)
+
+        if form.is_valid():
+
+            user_input = form.extract_data()
+            query = lookup_customer_query(user_input) # generate query
+            data, header = run_query(query) # run query
+
+            if len(data) == 0:
+                home_status = "Sorry, it looks like we don’t have that customer!"
+            else:
+                home_status = "Results found and displayed below."
+        else:
+            home_status = "Inputs fields need to be corrected."
+
+    else:
+        form = LookupCustomer()
+
+
+
+    return render(request, 'mainlanding/lookup_customer.html',
+                  {'form': form,
+                   'data': data,
+                   'status':home_status,
+                   'user':os.environ["USER_ROLE"],
+                   'header': header})
+
+def sell_vehicle(request,vin):
+    form = SellVehicle()
+    context = {
+        "form":form,
+        "vin":vin,
+        'user': os.environ["USER_ROLE"]
+               }
+    print("Selling vehicle with vin: ", vin)
+    return render(request, 'mainlanding/sell_vehicle.html',context)

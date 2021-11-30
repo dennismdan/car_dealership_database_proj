@@ -92,11 +92,10 @@ class QueryVehicleForm(forms.Form):
         user_role = os.environ["USER_ROLE"]
 
         if user_role in workers[0:2]:
-            self.fields['VIN'] = VIN
             self.fields['sold_unsold_filter'] = sold_unsold_filter
             self.initial["sold_unsold_filter"] = "all"
 
-        elif user_role in workers:
+        if user_role in workers:
             self.fields['VIN'] = VIN
 
     def extract_data(self):
@@ -136,8 +135,28 @@ class FilterBy(forms.Form):
 
 
 class LookupCustomer(forms.Form):
-   drivers_licens_nr = forms.IntegerField()
-   tin = forms.IntegerField()
+   drivers_licens_nr = forms.IntegerField(required=False)
+   tin = forms.IntegerField(required=False)
+
+   # def __init__(self, *args, **kwargs):
+   #
+   #     # super(LookupCustomer, self).__init__(*args, **kwargs)
+   #     #
+   #     #
+   #     #
+   #     # user_role = os.environ["USER_ROLE"]
+       #
+
+
+   def extract_data(self):
+       data = self.data.dict()
+       data['Driver_license'] = self.drivers_licens_nr
+       data['TIN'] = self.tin
+
+       user_role = os.environ["USER_ROLE"]
+
+
+       return data
 
 
 class AddCustomer(forms.Form):
@@ -148,21 +167,44 @@ class AddCustomer(forms.Form):
   state = forms.CharField()
   postal_code = forms.CharField()
 
+  def __init__(self, *args, **kwargs):
+
+      super(AddCustomer, self).__init__(*args, **kwargs)
+
+      # Person Fields
+      first_name = forms.CharField()
+      last_name = forms.CharField()
+      driver_license_nr = forms.CharField()
+      customer_id = forms.CharField()
+      person_fields = [first_name,last_name,driver_license_nr,customer_id]
+      person_names = ["first_name", "last_name", "driver_license_nr", "customer_id"]
+
+      # Business Fields
+      business_name = forms.CharField()
+      contact_name = forms.CharField()
+      contact_title = forms.CharField()
+      TIN = forms.CharField()
+      customer_id = forms.CharField()
+      business_fields = [business_name,contact_name,contact_title,TIN,customer_id]
+      business_names = ["business_name", "contact_name", "contact_title", "TIN", "customer_id"]
+
+      add_user_type = os.environ["ADD_USER_TYPE"] # can either be person or business
+
+      if add_user_type == "individual":
+          self.add_fields_to_form(person_fields,person_names)
+      elif add_user_type == "business":
+          self.add_fields_to_form(business_fields,business_names)
+
+
+
+  def add_fields_to_form(self,form_list:list, name_list):
+      for i in range(len(form_list)):
+
+          self.fields[name_list[i]] = form_list[i]
+
+
   def clean_data(self):
         pass
-
-class Individual(forms.Form):
-  first_name = forms.CharField()
-  last_name = forms.CharField()
-  driver_license_nr = forms.CharField()
-  customer_id = forms.CharField()
-
-class Business(forms.Form):
-  business_name = forms.CharField()
-  contact_name = forms.CharField()
-  contact_title = forms.CharField()
-  TIN= forms.CharField()
-  customer_id = forms.CharField()
 
 
 class AddVehicle(forms.Form):
@@ -181,42 +223,24 @@ class AddVehicle(forms.Form):
 
 
 class AddRepair(forms.Form):
-    VIN = forms.CharField(label="VIN")
-    Customer_id = forms.CharField(label="Customer Id")
-    Start_date = forms.DateField()
-    Labor_charges = forms.CharField(label="Labor_charges", required=False)
-    Total_cost = forms.CharField(label="Total_cost", required=False)
-    Description = forms.CharField(label="Description")
-    Completion_date = forms.DateField(label="Completion_date", required=False)
-    Odometer_reading = forms.CharField(label="Odometer_reading")
-    Username = forms.CharField(label="Username")
-
-    # def __init__(self, *args, **kwargs):
-    #     super(AddRepair, self).__init__(*args, **kwargs)
-    #     user_role = os.environ["USER_ROLE"]
-    #
-    #     if user_role in workers[0] :
-    #         VIN = self.VIN
-    #         Customer_id = self.Customer_id
-    #         Start_date = self.Start_date
-    #         Labor_charges = self.Labor_charges
-    #         Total_cost = self.Total_cost
-    #         Description = self.Description
-    #         Completion_date = self.Completion_date
-    #         Odometer_reading = self.Odometer_reading
-    #         Username = self.Username
-
-    def extract_data(self):
-        data = self.data.dict()
-        # data['Vehicle_type'] = self.vehicle_choices[int(data['Vehicle_type'])][1]
-        # data['Manufacturer_name'] = self.manufacturer_names[int(data['Manufacturer_name'])][1]
-        # data['Color'] = self.color_choices[int(data['Color'])][1]
-        # user_role = os.environ["USER_ROLE"]
-        #
-        # if user_role in workers[0:2]:
-        #     data['sold_unsold_filter'] = self.sold_unsold_options[int(data['sold_unsold_filter'])][1]
-
-        return data
+  VIN = forms.CharField()
+  Customer_id = forms.CharField()
+  Start_date = forms.DateField()
+  Labor_charges = forms.CharField()
+  Total_cost = forms.CharField()
+  Description = forms.CharField()
+  Completion_date = forms.DateField()
+  Odometer_reading = forms.CharField()
+  Username = forms.CharField()
 
 
-
+class SellVehicle(forms.Form):
+    VIN = forms.CharField()
+    Year = forms.CharField()
+    Model_name = forms.CharField()
+    Description = forms.CharField()
+    Invoice_price = forms.CharField()
+    List_price = forms.CharField()
+    Inventory_date = forms.CharField()
+    Manufacturer_name = forms.CharField()
+    Username = forms.CharField()

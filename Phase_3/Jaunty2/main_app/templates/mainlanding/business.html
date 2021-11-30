@@ -1,9 +1,0 @@
-{% extends "mainlanding/base.html" %}
-{% block content %}
-<h1> Business </h1>
-<form name = "business" action = "{% url 'business' %}" method = "POST" >
-     {{ form.as_p }}
-</form>
-    <button type="submit">Add</button>
-
-{% endblock %}
