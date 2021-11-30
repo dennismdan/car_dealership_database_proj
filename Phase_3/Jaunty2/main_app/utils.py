@@ -154,21 +154,54 @@ def lookup_customer_query(user_input:dict)->str:
     TODO: format query per project structure
     '''
 
-    query = get_query_from_file("lookup_person.txt")
 
-    customer_fields = ["drivers_licens_nr", "tin"]
-    where_clause = []
+    customer_fields = ["driver_license_number", "tin"]
+    # where_clause = []
     for key, val in user_input.items():
 
         if key in customer_fields:
-                if key == "drivers_licens_nr":
-                    where_clause.append(f"(Driver_license='{val}')")
-                else:
-                    where_clause.append(f"({key}='{val}')")
+                if val == 'driver_license_number':
+                #     where_clause.append(f"(driver_license_number='{val}')")
+                # else:
+                #     where_clause.append(f"({key}='{val}')")
+                    query = get_query_from_file("lookup_person.txt")
+
+                    return query
+                if val == 'tin':
+                    query = get_query_from_file("lookup_business.txt")
+                    return query
+
+    # if len(where_clause) > 0:
+    #     query += " WHERE "
+    #     query += " AND ".join(where_clause)
+
+    # return query
+
+def add_customer_query(user_input: dict) -> str:
+    '''
+    :param user_input: dictionary of form {col1:value,col2:value}
+    :return:
+
+    TODO: format query per project structure
+    '''
 
 
-    if len(where_clause) > 0:
-        query += " WHERE "
-        query += " AND ".join(where_clause)
 
-    return query
+    # elif add_user_type == "business":
+    #     self.add_fields_to_form(business_fields, business_names)
+    add_user_type = os.environ["ADD_USER_TYPE"]
+    for key, val in user_input.items():
+
+        if add_user_type == "individual":
+            # if val == 'driver_license_number':
+                #     where_clause.append(f"(driver_license_number='{val}')")
+                # else:
+                #     where_clause.append(f"({key}='{val}')")
+                query = gen_query_add_row("Person",user_input)
+
+                return query
+        if add_user_type == "business":
+            # if val == 'tin':
+                query = gen_query_add_row("Business",user_input)
+                return query
+

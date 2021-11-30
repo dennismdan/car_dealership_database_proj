@@ -4,7 +4,7 @@ from django.shortcuts import render
 from django.http import HttpResponseRedirect
 from .forms import LoginForm, QueryVehicleForm, ReportTypes, LookupCustomer, FilterBy, AddCustomer
 from .forms import AddRepair
-from .utils import run_query, get_search_vehicle_query
+from .utils import run_query, get_search_vehicle_query,lookup_customer_query,add_customer_query
 from .runtime_constants import USER_ROLE
 
 USER_ROLE = os.environ["USER_ROLE"]
@@ -159,6 +159,7 @@ def loggedin(request):
         # Get the posted form
         form = LoginForm(request.POST)
         user_input = form.data.dict()
+
         print("User Logging in as: ",user_input["users"])
         os.environ["USER_ROLE"] = user_input["users"]
 
@@ -230,12 +231,12 @@ def add_customer(request):
             print("Add New Customer")
             user_input = form.extract_data()
             query = add_customer_query(user_input) # generate query, get_search_vehicle_query(user_input)
-            data, header = run_query(query) # run query
+            data, header = insert_row(query) # run query
 
-            if len(data) == 0:
-                home_status = "Please fill the required field"
-            else:
-                home_status = "Added successfully "
+            # if len(data) == 0
+            #     home_status = "Please fill the required field"
+            # else:
+            #     home_status = "Added successfully "
         else:
             home_status = "Inputs fields need to be corrected."
 
@@ -252,24 +253,17 @@ def add_customer(request):
 def lookup_customer(request):
     data = []
     header = []
+
     form = LookupCustomer()
-    home_status = "Search Customer."
-
-    if request.method == 'POST':
+    if request.method == "POST":
+        # Get the posted form
         form = LookupCustomer(request.POST)
-
         if form.is_valid():
-
+            print("POST statement from home page")
             user_input = form.extract_data()
-            query = lookup_customer_query(user_input) # generate query
-            data, header = run_query(query) # run query
-
-            if len(data) == 0:
-                home_status = "Sorry, it looks like we don’t have that customer!"
-            else:
-                home_status = "Results found and displayed below."
-        else:
-            home_status = "Inputs fields need to be corrected."
+            query = lookup_customer_query(user_input)
+            data, header = run_query(query)  # run query
+            # print(data)
 
     else:
         form = LookupCustomer()
@@ -279,6 +273,5 @@ def lookup_customer(request):
     return render(request, 'mainlanding/lookup_customer.html',
                   {'form': form,
                    'data': data,
-                   'status':home_status,
-                   'user':os.environ["USER_ROLE"],
                    'header': header})
+

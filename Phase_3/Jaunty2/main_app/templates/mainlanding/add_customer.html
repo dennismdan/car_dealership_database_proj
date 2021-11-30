@@ -9,7 +9,7 @@
     <button type="submit" onclick="location.href='{% url 'business' %}'" name='business'>Business</button>
 </div>
 
-<form name = "add_customer" action = "{% url 'add_customer' %} " method = "POST" >
+<form name = "add_customer" action = "{% url 'add_customer' %} " method = "POST" >{% csrf_token %}
      {{ form.as_p }}
     <input type="submit"  value="Save">
 </form>

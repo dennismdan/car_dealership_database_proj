@@ -4,3 +4,5 @@ if os.getenv("USER_ROLE") is None:
 
 if os.getenv("ADD_USER_TYPE") is None:
     os.environ["ADD_USER_TYPE"] = "individual"
+
+

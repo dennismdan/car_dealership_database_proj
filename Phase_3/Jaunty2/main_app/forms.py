@@ -4,7 +4,7 @@ from django import forms
 import main_app.views
 
 from django.core.exceptions import ValidationError
-from main_app.utils import get_colors,get_manufacturer_names
+from main_app.utils import get_colors,get_manufacturer_names,lookup_customer_query
 import datetime
 import os
 
@@ -124,23 +124,20 @@ class FilterBy(forms.Form):
 
 
 class LookupCustomer(forms.Form):
-   drivers_licens_nr = forms.IntegerField(required=False)
-   tin = forms.IntegerField(required=False)
+   driver_license_number = forms.CharField(required=False,)
+   tin = forms.CharField(required=False, )
 
-   # def __init__(self, *args, **kwargs):
-   #
-   #     # super(LookupCustomer, self).__init__(*args, **kwargs)
-   #     #
-   #     #
-   #     #
-   #     # user_role = os.environ["USER_ROLE"]
-       #
+   def __init__(self, *args, **kwargs):
 
+       super(LookupCustomer, self).__init__(*args, **kwargs)
 
    def extract_data(self):
        data = self.data.dict()
-       data['Driver_license'] = self.drivers_licens_nr
-       data['TIN'] = self.tin
+
+       # data['driver_license_number'] = self.driver_license_number(data['driver_license_number'])
+       # data['tin'] = self.tin(data['tin'])
+       # data['driver_license_number'] = request.POST.get('driver_license_number')
+       # data['tin'] = request.POST.get('tin')
 
        user_role = os.environ["USER_ROLE"]
 
@@ -191,7 +188,9 @@ class AddCustomer(forms.Form):
 
           self.fields[name_list[i]] = form_list[i]
 
-
+  def extract_data(self):
+      data = self.data.dict()
+      return data
   def clean_data(self):
         pass
 
