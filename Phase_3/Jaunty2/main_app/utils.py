@@ -13,6 +13,54 @@ TODO:
 from typing import Tuple, List
 import pyodbc
 
+
+def get_customer_id(customer_unique_nr,customer_type):
+    if customer_type == "licence_nr":
+        from_clause = "Person"
+        where_clause = "Driver_license"
+    else:
+        from_clause = "Business"
+        where_clause = "Tin"
+
+    if customer_unique_nr == "":
+        return ""
+    else:
+        query = f"SELECT Customer_id FROM {from_clause} WHERE {where_clause} = {customer_unique_nr}"
+        data,_ = run_query(query)  # run query
+
+        if len(data) == 0:
+            return ""
+        else:
+            return data[0][0]
+
+
+def find_customer(Driver_license,Tin):
+    data = []
+    header = []
+
+    if Driver_license == "" and Tin == "":
+        status = "At least one (driver's license or TIN) must be entered to look up customer."
+    elif Driver_license != "":
+        query = f"SELECT * FROM Person WHERE Driver_license = {Driver_license}"
+        data, header = run_query(query)  # run query
+        if len(data) == 0:
+            header = []
+            status = "Person not found, please add customer to the database."
+        else:
+            status = "Person found in the customer registry. Details below."
+    elif Tin != "":
+        query = f"SELECT * FROM Business WHERE Tin = {Tin}"
+        data, header = run_query(query)  # run query
+        if len(data) == 0:
+            header = []
+            status = "Business not found, please add customer to the database."
+        else:
+            status = "Business found in the customer registry. Details below."
+    else:
+        status = "Logic not captured by the code."
+
+    return data, header, status
+
 def compose_pyodbc_connection():
     connection_string = 'Driver={SQL Server};Server=%s;Database=CS6400;Trusted_Connection=yes;' % ( SERVER )
     if os.getenv("PYODBC_AUTH")=="True":
@@ -120,10 +168,11 @@ def run_query(query:str,return_results:bool = True)->List[tuple]:
     return results, header
 
 def insert_row(query:str,row):
-    '''
-    :param query:
+    """
+    :param query: string type for example 'SELECT * FROM ...'
+    :param row: is a tuple of values, for example, (val1,val2, val3...)
     :return:
-    '''
+    """
 
     connection_str = compose_pyodbc_connection()
     conn = pyodbc.connect(connection_str)

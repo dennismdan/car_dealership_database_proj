@@ -25,4 +25,5 @@ urlpatterns = [
     path('vehicle_details/<str:vin>/', views.vehicle_details, name="vehicle_details"),
     path('add_repair/', views.add_repair, name="add_repair"),
     path('sell_vehicle/<str:vin>/', views.sell_vehicle, name="sell_vehicle"),
+
 ]

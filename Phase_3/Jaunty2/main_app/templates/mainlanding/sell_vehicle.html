@@ -18,13 +18,18 @@
 {% block title %} Add Vehicle {% endblock %}
 
 {% block content %}
-<h1> Selling Vehicle with VIN: {{ vin }}</h1>
+<h1> Sales Order Form </h1>
 
+<br>
+<br>
+<button type="submit" onclick="location.href='{% url 'lookup_customer' %}'" name='lookup_customer'>Lookup Customer</button>
+<br>
+<br>
+<h3> Selling Vehicle with VIN: {{ vin }}</h3>
 <form name = "add_vehicle" action = "{% url 'sell_vehicle' vin %}" method = "POST" >{% csrf_token %}
     {{ form.as_p }}
     <button type="submit">Sell Vehicle</button>
 
 </form>
-
 {% endblock %}
 
