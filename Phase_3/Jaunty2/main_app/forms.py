@@ -4,7 +4,7 @@ from django import forms
 import main_app.views
 
 from django.core.exceptions import ValidationError
-from main_app.utils import get_colors,get_manufacturer_names,lookup_customer_query
+from main_app.utils import get_colors,get_manufacturer_names,run_reports
 import datetime
 import os
 
@@ -112,10 +112,21 @@ class QueryVehicleForm(forms.Form):
 
 
 class ReportTypes(forms.Form):
-   report_choices = ((1, "Sales by Color"), (2, "Sales by Type"), (3, "Sales by Manufacturer"),
-                     (4, "Gross Customer Income"), (5, "Average Time in Inventory"), (6, "Part Statistics"),
-                     (7, "Below Cost Sales"), (8, "Repairs By Manufacturer/Type/Model"), (9, "Monthly Sales"),)
-   reports = forms.ChoiceField(choices=report_choices)
+    report_choices = ((0, "Sales by Color"), (1, "Sales by Type"), (2, "Sales by Manufacturer"),
+                   (3, "Gross Customer Income"), (4, "Average Time in Inventory"), (5, "Part Statistics"),
+                     (6, "Below Cost Sales"), (7, "Repairs By Manufacturer/Type/Model"), (8, "Monthly Sales"),)
+    reports = forms.ChoiceField(choices=report_choices)
+
+
+    def extract_data(self):
+        data = self.data.dict()
+        data['reports'] = self.report_choices[int(data['reports'])][1]
+        # data['Manufacturer_name'] = self.manufacturer_names[int(data['Manufacturer_name'])][1]
+        # data['Color'] = self.color_choices[int(data['Color'])][1]
+        # user_role = os.environ["USER_ROLE"]
+
+        return data
+
 
 
 class FilterBy(forms.Form):
@@ -124,20 +135,23 @@ class FilterBy(forms.Form):
 
 
 class LookupCustomer(forms.Form):
-   driver_license_number = forms.CharField(required=False,)
-   tin = forms.CharField(required=False, )
+   drivers_licens_nr = forms.IntegerField(required=False)
+   tin = forms.IntegerField(required=False)
 
-   def __init__(self, *args, **kwargs):
+   # def __init__(self, *args, **kwargs):
+   #
+   #     # super(LookupCustomer, self).__init__(*args, **kwargs)
+   #     #
+   #     #
+   #     #
+   #     # user_role = os.environ["USER_ROLE"]
+       #
 
-       super(LookupCustomer, self).__init__(*args, **kwargs)
 
    def extract_data(self):
        data = self.data.dict()
-
-       # data['driver_license_number'] = self.driver_license_number(data['driver_license_number'])
-       # data['tin'] = self.tin(data['tin'])
-       # data['driver_license_number'] = request.POST.get('driver_license_number')
-       # data['tin'] = request.POST.get('tin')
+       data['Driver_license'] = self.drivers_licens_nr
+       data['TIN'] = self.tin
 
        user_role = os.environ["USER_ROLE"]
 
@@ -188,9 +202,7 @@ class AddCustomer(forms.Form):
 
           self.fields[name_list[i]] = form_list[i]
 
-  def extract_data(self):
-      data = self.data.dict()
-      return data
+
   def clean_data(self):
         pass
 
@@ -220,3 +232,15 @@ class AddRepair(forms.Form):
   Completion_date = forms.DateField()
   Odometer_reading = forms.CharField()
   Username = forms.CharField()
+
+
+class SellVehicle(forms.Form):
+    VIN = forms.CharField()
+    Year = forms.CharField()
+    Model_name = forms.CharField()
+    Description = forms.CharField()
+    Invoice_price = forms.CharField()
+    List_price = forms.CharField()
+    Inventory_date = forms.CharField()
+    Manufacturer_name = forms.CharField()
+    Username = forms.CharField()

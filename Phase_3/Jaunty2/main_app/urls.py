@@ -2,6 +2,11 @@ from django.urls import path
 
 from . import views
 
+'''
+https://docs.djangoproject.com/en/3.2/topics/http/urls/
+'''
+
+
 urlpatterns = [
     path('', views.home, name="home"),
     path('home/', views.home, name="home"),
@@ -17,6 +22,8 @@ urlpatterns = [
     path('total_vehicles_available/', views.total_vehicles_available, name="total_vehicles_available"),
     path('individual/', views.update_add_customer, name="individual"),
     path('business/', views.update_add_customer, name="business"),
-    path('vehicle_details/', views.vehicle_details, name="vehicle_details"),
+    path('vehicle_details/<str:vin>/', views.vehicle_details, name="vehicle_details"),
     path('add_repair/', views.add_repair, name="add_repair"),
+    path('sell_vehicle/<str:vin>/', views.sell_vehicle, name="sell_vehicle"),
+
 ]

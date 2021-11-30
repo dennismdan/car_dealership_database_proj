@@ -1,0 +1,38 @@
+DECLARE   @maxdate30 DATETIME
+DECLARE  @maxdate365 DATETIME
+
+SET @maxdate30    =  (SELECT MAX(Sale_date) - 30 from Sale)
+SET @maxdate365  =   (SELECT MAX(Sale_date) - 365 from Sale)
+
+SELECT CarColor
+,count(CASE WHEN s.Sale_date > @maxdate30 THEN s.Sale_date ELSE NULL END) LastMonth
+,count(CASE WHEN s.Sale_date > @maxdate365 THEN s.Sale_date ELSE NULL END) LastYear
+,count(s.Sale_date) Alltime
+FROM (
+SELECT 'Aluminum' AS CarColor
+UNION SELECT 'Beige' AS CarColor UNION SELECT 'Black' AS CarColor
+UNION SELECT 'Blue'AS CarColor UNION SELECT 'Brown' AS CarColor
+UNION SELECT 'Bronze' AS CarColor UNION SELECT 'Claret' AS CarColor
+UNION SELECT 'Copper' AS CarColor UNION SELECT 'Cream' AS CarColor
+UNION SELECT 'Gold' AS CarColor UNION SELECT 'Gray' AS CarColor
+UNION SELECT 'Green' AS CarColor UNION SELECT 'Maroon' AS CarColor
+UNION SELECT 'Metallic' AS CarColor UNION SELECT 'Navy' AS CarColor
+UNION SELECT 'Orange' AS CarColor UNION SELECT 'Pink' AS CarColor
+UNION SELECT 'Purple' AS CarColor
+UNION SELECT 'Red' AS CarColor
+UNION SELECT 'Rose' AS CarColor
+UNION SELECT 'Rust' AS CarColor
+UNION SELECT 'Silver' AS CarColor
+UNION SELECT 'Tan' AS CarColor
+UNION SELECT 'Turquoise' AS CarColor
+UNION SELECT 'White' AS CarColor
+UNION SELECT 'Yellow' AS CarColor
+UNION SELECT 'Multiple' AS CarColor) AS Colors
+LEFT JOIN (select
+CASE
+    WHEN ( SELECT DISTINCT STRING_AGG(c.Color,' | ') FROM Color c WHERE c.VIN=s.VIN) LIKE '%|%' THEN 'Multiple'
+   ELSE ( SELECT DISTINCT STRING_AGG(c.Color,' | ') FROM Color c WHERE c.VIN=s.VIN)  END AS ColorCase ,s.Sale_date
+from Sale s ) as s ON CarColor = ColorCase GROUP BY CarColor
+
+
+

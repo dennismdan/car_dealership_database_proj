@@ -1,0 +1,18 @@
+SELECT
+s.Sale_date,
+s.Sale_price,
+(e.First_name + ' ' + e.Last_name) as SalesPersonName,
+cp.CustomerName as BuyerName,
+c.Phone_number as BuyerPhone,
+c.Email as BuyerEmail,
+c.Street_address as BuyerAdress,
+c.State,c.Postal_code
+FROM Vehicle v
+LEFT JOIN Sale s ON v.VIN=s.VIN
+LEFT JOIN EmployeeUser e ON s.Username=e.Username
+LEFT JOIN EmployeeUser ic ON v.Username=ic.Username
+LEFT JOIN Customer c ON s.Customer_id=c.Customer_id
+LEFT JOIN (SELECT p.Customer_id, (p.First_name + ' ' + p.Last_name)as CustomerName FROM Person p
+			UNION
+			SELECT b.Customer_id, b.Business_name as CustomerName FROM Business b) as CP
+	ON CP.customer_id=c.customer_id

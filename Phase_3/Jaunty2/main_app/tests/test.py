@@ -2,7 +2,13 @@ import os
 import time
 
 import pytest
-from ..utils import gen_query_add_row, run_query,insert_row,get_query_from_file, get_manufacturer_names, compose_pyodbc_connection
+from ..utils import (gen_query_add_row,
+                     run_query,insert_row,
+                     get_query_from_file,
+                     get_manufacturer_names,
+                     compose_pyodbc_connection,
+                     cleanup_null_cols,
+                     get_detailed_vehicle_query)
 
 '''
 https://coderedirect.com/questions/192135/pyodbc-insert-into-sql
@@ -61,4 +67,38 @@ def test_compose_pyodbc_connection():
     connect_str = compose_pyodbc_connection()
     print(connect_str)
     os.environ["PYODBC_AUTH"] = "False"
+    assert True
+
+
+def test_cleanup_null_cols():
+    test_data = (1,None,"a",None)
+    test_cols = ["a","b","c","d"]
+    data,cols = cleanup_null_cols(test_data,test_cols)
+
+    assert data == (1,"a")
+    assert cols == ["a","c"]
+
+def test_get_detailed_vehicle_query():
+    os.environ["USER_ROLE"] = "inventory_clerk"
+    print(os.environ["USER_ROLE"])
+    query = get_detailed_vehicle_query("0")
+    print(query)
+    d,h = run_query(query)
+    print(d,h)
+
+
+    os.environ["USER_ROLE"] = "manager"
+    print(os.environ["USER_ROLE"])
+    query = get_detailed_vehicle_query("0")
+    print(query)
+    d,h = run_query(query)
+    print(d,h)
+
+    os.environ["USER_ROLE"] = "regular_user"
+    print(os.environ["USER_ROLE"])
+    query = get_detailed_vehicle_query("0")
+    print(query)
+    d,h = run_query(query)
+    print(d,h)
+
     assert True

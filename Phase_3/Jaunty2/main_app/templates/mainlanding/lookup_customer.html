@@ -1,11 +1,34 @@
 {% extends "mainlanding/base.html" %}
 {% block content %}
+<h1> Lookup Customer </h1>
+<br>
+<br>
+<h4> {{ status }} </h4>
  <form name = "lookup_customer" action = "{% url 'lookup_customer' %}" method = "POST" id="form1">{% csrf_token %}
     {{ form.as_p }}
-     <button type="submit" name="submit" form="form1">Lookup Customer</button>
+     <br>
+     <button type="submit">Lookup Customer</button>
  </form>
-<!--     <button type="submit" name="submit" form="form1">Lookup Customer</button>-->
-     <button type="submit" onclick="location.href='{% url 'add_customer' %}'" name='add_customer'>Add Customer</button>
 
+<table class="table table-striped table-hover">
+    <tr>
+        {% for head in header %}
+            <td><b>{{ head }}</b></td>
+        {% endfor %}
+    </tr>
+    {% for row in data %}
+        <tr onclick="location.href='{% url 'vehicle_details' row.0 %}'" name='login'>
+        {% for cell in row %}
+            <td> {{ cell }}</td>
+        {% endfor %}
+        </tr>
+    {% endfor %}
+</table>
+<br>
+<br>
+<button type="submit" onclick="location.href='{% url 'add_customer' %}'" name='add_customer'>Add Customer</button>
+<br>
+<br>
+<button class="done" type="submit" onclick="history.back()">Done</button>
 {% endblock %}
 

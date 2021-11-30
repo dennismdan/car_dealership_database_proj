@@ -1,0 +1,28 @@
+SELECT
+FORMAT (s.Sale_date, 'MM-dd-yyyy') Sale_Date
+,v.Invoice_price
+,s.Sale_price
+,(100*(Sale_price)/(Invoice_price)) AS Profit_ratio
+,CASE
+    WHEN (100*(Sale_price)/(Invoice_price)) <= 95 THEN 'Red'
+ END AS Background
+FROM Vehicle v
+LEFT JOIN (
+SELECT Car.VIN, 'Car' AS Vehicle_type FROM Car
+UNION	SELECT SUV.VIN, 'SUV' AS Vehicle_type FROM SUV
+UNION	SELECT Truck.VIN, 'Truck' AS Vehicle_type FROM Truck
+UNION	SELECT Convertible.VIN, 'Convertible' AS Vehicle_type FROM Convertible
+UNION	SELECT VanMinivan.VIN, 'VanMinivan' AS Vehicle_type FROM VanMinivan
+) AS VehicleType ON v.VIN= vehicleType.VIN
+LEFT JOIN Sale s ON v.VIN=s.VIN
+LEFT JOIN EmployeeUser e ON s.Username=e.Username
+LEFT JOIN EmployeeUser ic ON v.Username=ic.Username
+LEFT JOIN Customer c ON s.Customer_id=c.Customer_id
+LEFT JOIN (SELECT p.Customer_id, (p.First_name + ' ' + p.Last_name)as CustomerName FROM Person p
+			UNION
+			SELECT b.Customer_id, b.Business_name as CustomerName FROM Business b) as CP
+	ON CP.customer_id=c.customer_id
+  WHERE s.Sale_date IS NOT NULL
+ORDER BY
+s.Sale_date DESC,
+(100*(Sale_price)/(Invoice_price)) DESC

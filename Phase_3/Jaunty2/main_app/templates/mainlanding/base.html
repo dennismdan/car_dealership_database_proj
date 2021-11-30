@@ -8,6 +8,7 @@
         label { display: table-cell; margin:10px;}
         input { display: table-cell; margin:10px;}
         select { display: table-cell; margin:10px;}
+        .done {background-color: #8395a7;}
         .sidenav{
             height:100%;
             width:160px;
@@ -53,15 +54,30 @@
     </style>
     <meta charset="UTF-8">
     <title>{% block title %} Base Template {% endblock %}</title>
+    <resource>
+        {% block source %}
+        {% endblock %}
+    </resource>
 </head>
 <body>
     <div class="sidenav">
-        <!--TODO: add logic to check if user is authenticated and show below options based on role-->
         <a class="home" href="/home">Home</a>
+
+        {% if user in "owner" %}
         <a class="add_vehicle" href="/add_vehicle">Add Vehicle</a>
         <a class="reports" href="/reports">Reports</a>
         <a class="repairs" href="/repairs">Repairs</a>
-        <a class="Filter" href="/filter_vehicles">Filter</a>
+
+        {% elif user == "manager" %}
+        <a class="reports" href="/reports">Reports</a>
+
+        {% elif user == "inventory_clerk" %}
+        <a class="add_vehicle" href="/add_vehicle">Add Vehicle</a>
+
+        {% elif user == "service_writer" %}
+        <a class="repairs" href="/repairs">Repairs</a>
+        {% endif %}
+
         {% block search_vehicle %}
         {% endblock %}
     </div>
