@@ -17,7 +17,8 @@ from .utils import (run_query,
                     cleanup_null_cols,
                     get_sales_query,
                     get_repair_query,
-                    get_data_for_template)
+                    get_data_for_template,
+                    find_customer)
 from .runtime_constants import USER_ROLE
 
 USER_ROLE = os.environ["USER_ROLE"]
@@ -329,23 +330,17 @@ def lookup_customer(request):
     data = []
     header = []
     form = LookupCustomer()
-    home_status = "Search Customer."
+    status = "Look up either business or person customer."
 
     if request.method == 'POST':
         form = LookupCustomer(request.POST)
 
         if form.is_valid():
+            user_data = form.extract_data()
+            Driver_license = user_data['drivers_licens_nr']
+            Tin = user_data['tin']
 
-            user_input = form.extract_data()
-            query = lookup_customer_query(user_input) # generate query
-            data, header = run_query(query) # run query
-
-            if len(data) == 0:
-                home_status = "Sorry, it looks like we don’t have that customer!"
-            else:
-                home_status = "Results found and displayed below."
-        else:
-            home_status = "Inputs fields need to be corrected."
+            data,header,status = find_customer(Driver_license,Tin)
 
     else:
         form = LookupCustomer()
@@ -354,10 +349,12 @@ def lookup_customer(request):
 
     return render(request, 'mainlanding/lookup_customer.html',
                   {'form': form,
-                   'data': data,
-                   'status':home_status,
+                   'status':status,
+                   'data':data,
+                   'header':header,
                    'user':os.environ["USER_ROLE"],
                    'header': header})
+
 
 def sell_vehicle(request,vin):
     form = SellVehicle()

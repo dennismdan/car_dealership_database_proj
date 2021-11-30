@@ -13,6 +13,33 @@ TODO:
 from typing import Tuple, List
 import pyodbc
 
+def find_customer(Driver_license,Tin):
+    data = []
+    header = []
+
+    if Driver_license == "" and Tin == "":
+        status = "At least one (driver's license or TIN) must be entered to look up customer."
+    elif Driver_license != "":
+        query = f"SELECT * FROM Person WHERE Driver_license = {Driver_license}"
+        data, header = run_query(query)  # run query
+        if len(data) == 0:
+            header = []
+            status = "Person not found, please add customer to the database."
+        else:
+            status = "Person found in the customer registry. Details below."
+    elif Tin != "":
+        query = f"SELECT * FROM Business WHERE Tin = {Tin}"
+        data, header = run_query(query)  # run query
+        if len(data) == 0:
+            header = []
+            status = "Business not found, please add customer to the database."
+        else:
+            status = "Business found in the customer registry. Details below."
+    else:
+        status = "Logic not captured by the code."
+
+    return data, header, status
+
 def compose_pyodbc_connection():
     connection_string = 'Driver={SQL Server};Server=%s;Database=CS6400;Trusted_Connection=yes;' % ( SERVER )
     if os.getenv("PYODBC_AUTH")=="True":

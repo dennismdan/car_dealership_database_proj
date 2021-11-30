@@ -138,24 +138,8 @@ class LookupCustomer(forms.Form):
    drivers_licens_nr = forms.IntegerField(required=False)
    tin = forms.IntegerField(required=False)
 
-   # def __init__(self, *args, **kwargs):
-   #
-   #     # super(LookupCustomer, self).__init__(*args, **kwargs)
-   #     #
-   #     #
-   #     #
-   #     # user_role = os.environ["USER_ROLE"]
-       #
-
-
    def extract_data(self):
        data = self.data.dict()
-       data['Driver_license'] = self.drivers_licens_nr
-       data['TIN'] = self.tin
-
-       user_role = os.environ["USER_ROLE"]
-
-
        return data
 
 
