@@ -161,42 +161,60 @@ def get_manufacturer_names():
 
 def add_repair(user_input):
     #query = get_query_from_file("add_repair.txt")
+    data = []
+    header = []
 
-    repair_fields = ["VIN", "Customer Id", "Start_date", "Labor_charges", "Total_cost", "Description",
-                     "Completion_date", "Odometer_reading", "Username"]
+    # if "VIN" != "" and "Customer Id" != "" and "Start_date"!= "" and "Description"!= "" and "Odometer_reading"!= "" and "Username":
+    #     query = get_query_from_file("add_repair.txt")
+    #     data, header = run_query(query)  # run query
+    # #     if len(data) == 0:
+    # #         header = []
+    # #         status = "Person not found, please add customer to the database."
+    # #     else:
+    # #         status = "Person found in the customer registry. Details below."
+    # # elif Tin != "":
+    # #     query = f"SELECT * FROM Business WHERE Tin = {Tin}"
+    # #     data, header = run_query(query)  # run query
+    # #     if len(data) == 0:
+    # #         header = []
+    # #         status = "Business not found, please add customer to the database."
+    # #     else:
+    # #         status = "Business found in the customer registry. Details below."
+    # # else:
+    # #     status = "Logic not captured by the code."
+    # return data, header
+
+    repair_fields = ["VIN", "Customer Id", "Start_date", "Description", "Odometer_reading", "Username"]
     row_tuple = []
     for key, val in user_input.items():
 
-        if (val != "all") and (val != ""):
+
+
+        #if (val != "all") and (val != ""):
             if key in repair_fields:
                 if key == "VIN":
                     row_tuple.append(f"(v.VIN='{val}')")
+                    # row_tuple.append(val)
+                    print(row_tuple)
 
+                if key == "Customer Id":
+                    row_tuple.append(val)
 
-            if key == "Customer Id":
-                where_clause.append(f"(List_price > {user_input['min_price']})")
-            if key == "max_price":
-                where_clause.append(f"(List_price < {user_input['max_price']})")
+                if key == "Start_date":
+                    row_tuple.append({val})
 
-            if val == "sold":  # for sold unsold filter
-                where_clause.append(f"(v.VIN IN ( SELECT s.VIN FROM Sale s))")
-            elif val == "unsold":
-                where_clause.append(f"(v.VIN NOT IN ( SELECT s.VIN FROM Sale s))")
+                if key == "Description":
+                    row_tuple.append({val})
 
-            if key == "Color":
-                where_clause.append(
-                    f"((SELECT DISTINCT STRING_AGG(c.Color,' | ') FROM Color c WHERE c.VIN=v.VIN) LIKE '%{val}%')")
+                if key == "Odometer_reading":
+                    row_tuple.append({val})
 
-            if key == "keywords":
-                keywords = user_input["keywords"].split(',')
-                for word in keywords:
-                    where_clause.append(f"(Description LIKE '%{word}%')")
+                if key == "Username":
+                    row_tuple.append({val})
+                    print(row_tuple)
 
-
-
-
-
-    query = gen_query_add_row("Repair", user_input)
+    query = gen_query_add_row("Repair", tuple(row_tuple))
+    print(query)
     return query
 
 
@@ -254,7 +272,7 @@ def run_reports(user_input):
 
 
 
-    insert_row(query, (1, 22, 2021-11-20, "xyx", 123, 'ServiceWriter'))
+
 
 def lookup_customer_query(user_input:dict)->str:
     '''

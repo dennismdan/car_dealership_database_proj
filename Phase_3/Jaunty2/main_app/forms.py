@@ -226,10 +226,10 @@ class AddRepair(forms.Form):
   VIN = forms.CharField()
   Customer_id = forms.CharField()
   Start_date = forms.DateField()
-  Labor_charges = forms.CharField()
-  Total_cost = forms.CharField()
+  Labor_charges = forms.CharField(required=False)
+  Total_cost = forms.CharField(required=False)
   Description = forms.CharField()
-  Completion_date = forms.DateField()
+  Completion_date = forms.DateField(required=False)
   Odometer_reading = forms.CharField()
   Username = forms.CharField()
 
