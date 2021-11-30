@@ -56,21 +56,31 @@ def price_check(sales_price):
     else:
         return sales_price
 
-def customer_lookup(id):
-
+def business_lookup(id):
     if id == "":
         return id
     else:
-        data,_,_ = find_customer(id,id)
+        data,_,_ = find_customer("",id)
+        if len(data)==0:
+            raise ValidationError(
+                ('Customer not found in business customers, please add customer'))
+        else:
+            return id
+
+def person_lookup(id):
+    if id == "":
+        return id
+    else:
+        data,_,_ = find_customer(id,"")
 
         if len(data)==0:
             raise ValidationError(
-                ('Customer not found, please add customer'))
+                ('Customer not found in persons customers, please add customer'))
         else:
             return id
 
 def date_check(date):
-    today = datetime.now(timezone_est).date()
+    today = datetime.now(timezone_est)
     tomorrow = today + timedelta(days=1)
     far_past = today - timedelta(days=7)
 
@@ -287,45 +297,60 @@ class AddRepair(forms.Form):
 
 class SellVehicle(forms.Form):
 
-    VIN = forms.CharField(
-        required=True,
-        initial=int(os.environ["SALES_VIN"]),
-    )
-    sales_person_username = forms.CharField(
-        validators=[sales_person_lookup],
-        required=True,
-    )
-    licence_nr = forms.IntegerField(
-        validators=[customer_lookup]
-    )
+    def __init__(self,vin="None",invoice_price="none", *args, **kwargs):
 
-    TIN = forms.IntegerField(
-        validators=[customer_lookup]
-    )
-    sales_price = forms.DecimalField(
-        decimal_places=2,
-        label = "Sales Price",
-        required=True,
-        validators=[validate_decimals,price_check])
+        super(SellVehicle, self).__init__(*args, **kwargs)
 
-    sales_date= forms.DateTimeField(
-        label = "Sales date",
-        initial = datetime.now(timezone_est),
-        required=True,
-        validators=[date_check])
+        self.vin = vin
+        self.invoice_price = invoice_price
+        os.environ["SALES_INVOICE_PRICE"] = str(invoice_price)
+
+        self.fields['VIN'] = forms.CharField(
+            required=True,
+            initial=self.vin,
+        )
+        self.fields['sales_person_username'] = forms.CharField(
+            validators=[sales_person_lookup],
+            required=True,
+        )
+        self.fields["licence_nr"] = forms.IntegerField(
+            validators=[person_lookup],
+            required=False
+        )
+
+        self.fields["TIN"] = forms.IntegerField(
+            validators=[business_lookup],
+            required=False
+        )
+        self.fields["sales_price"] = forms.DecimalField(
+            decimal_places=2,
+            label="Sales Price",
+            required=True,
+            validators=[validate_decimals, price_check])
+
+        self.fields["sales_date"] = forms.DateTimeField(
+            label="Sales date",
+            initial=datetime.now(timezone_est),
+            required=True,
+            validators=[date_check])
+
 
     def clean(self):
         cleaned_data = super().clean()
-        if not cleaned_data.get('licence_nr') and not cleaned_data.get('licence_nr'):  # This will check for None or Empty
-            raise ValidationError({'licence_nr': 'Even one of licence_nr or TIN should have a value.'})
+        if not cleaned_data.get('licence_nr') and not cleaned_data.get('TIN'):  # This will check for None or Empty
+            raise ValidationError({'licence_nr': 'One of licence_nr or TIN should have a value.'})
 
     def extract_data(self):
         data = self.data.dict()
-        if data["licence_nr"]!= "":
+
+        if len(data["licence_nr"])>0:
             id = get_customer_id(data["licence_nr"], "licence_nr")
+            print("person id is used",id)
+
         else:
             id = get_customer_id(data["TIN"], "TIN")
+            print("business id is used",id)
 
-        row = (data["VIN"],data["sales_person_username"],id,data["sales_price"],data["sales_date"])
+        row = (int(data["VIN"]),data["sales_person_username"],int(id),data["sales_price"],data["sales_date"])
 
         return row

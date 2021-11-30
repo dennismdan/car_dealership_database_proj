@@ -276,8 +276,8 @@ def vehicle_details(request,vin):
     :return:
     '''
 
-    sales_data = {'header':[], 'data':[], "status":""}
-    repair_data = {'header':[], 'data':[], "status":""}
+    sales_data = {'header':[], 'data':[()], "status":""}
+    repair_data = {'header':[], 'data':[()], "status":""}
 
     vehicle_data = get_data_for_template(vin,query_type="vehicle")
 
@@ -360,32 +360,35 @@ def lookup_customer(request):
 
 def sell_vehicle(request,vin):
     query = f"SELECT Invoice_price FROM Vehicle WHERE VIN = {vin}"
+
     data, _ = run_query(query)
     invoice_price = data[0][0]
-    os.environ["SALES_INVOICE_PRICE"] = str(invoice_price)
-    os.environ["SALES_VIN"] = str(vin)
-    form = SellVehicle()
+
+    form = SellVehicle(vin,invoice_price)
     status = ""
+    message_class = "normal"
 
 
     if request.method == 'POST':
-        form = SellVehicle(request.POST)
+        form = SellVehicle(data=request.POST, vin=vin,invoice_price=invoice_price)
 
         if form.is_valid():
             row = form.extract_data()
             try:
                 query = gen_query_add_row(table_name="Sale",row = row)
                 insert_row(query, row)
-                status = 'Sold vehicle'
+                status = 'Congratulations, the vehicle sold successfully!'
+                message_class = "success"
             except:
                 status = 'There was an issue selling the vehicle. Please contact IT.'
-                raise
+                message_class = "error"
 
     return render(request, 'mainlanding/sell_vehicle.html',
                   {
                       "form": form,
                       "vin": vin,
                       "status": status,
+                      "message_class":message_class,
                       'user': os.environ["USER_ROLE"]
                   }
                   )
