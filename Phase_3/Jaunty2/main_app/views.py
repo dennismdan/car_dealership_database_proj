@@ -12,10 +12,12 @@ from .forms import (LoginForm,
 from .forms import AddRepair
 from .utils import run_query, get_search_vehicle_query, run_reports,insert_row
 from .utils import (run_query,
+                    gen_query_add_row,
                     get_search_vehicle_query,
                     get_detailed_vehicle_query,
                     cleanup_null_cols,
                     get_sales_query,
+                    insert_row,
                     get_repair_query,
                     get_data_for_template,
                     find_customer)
@@ -357,11 +359,33 @@ def lookup_customer(request):
 
 
 def sell_vehicle(request,vin):
+    query = f"SELECT Invoice_price FROM Vehicle WHERE VIN = {vin}"
+    data, _ = run_query(query)
+    invoice_price = data[0][0]
+    os.environ["SALES_INVOICE_PRICE"] = str(invoice_price)
+    os.environ["SALES_VIN"] = str(vin)
     form = SellVehicle()
-    context = {
-        "form":form,
-        "vin":vin,
-        'user': os.environ["USER_ROLE"]
-               }
-    print("Selling vehicle with vin: ", vin)
-    return render(request, 'mainlanding/sell_vehicle.html',context)
+    status = ""
+
+
+    if request.method == 'POST':
+        form = SellVehicle(request.POST)
+
+        if form.is_valid():
+            row = form.extract_data()
+            try:
+                query = gen_query_add_row("Sale",row)
+                insert_row(query, row)
+                status = 'Sold vehicle'
+            except:
+                status = 'There was an issue selling the vehicle. Please contact IT.'
+                raise
+
+    return render(request, 'mainlanding/sell_vehicle.html',
+                  {
+                      "form": form,
+                      "vin": vin,
+                      "status": status,
+                      'user': os.environ["USER_ROLE"]
+                  }
+                  )

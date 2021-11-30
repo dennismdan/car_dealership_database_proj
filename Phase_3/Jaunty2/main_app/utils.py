@@ -13,6 +13,27 @@ TODO:
 from typing import Tuple, List
 import pyodbc
 
+
+def get_customer_id(customer_unique_nr,customer_type):
+    if customer_type == "licence_nr":
+        from_clause = "Person"
+        where_clause = "Driver_license"
+    else:
+        from_clause = "Business"
+        where_clause = "Tin"
+
+    if customer_unique_nr == "":
+        return ""
+    else:
+        query = f"SELECT Customer_id FROM {from_clause} WHERE {where_clause} = {customer_unique_nr}"
+        data,_ = run_query(query)  # run query
+
+        if len(data) == 0:
+            return ""
+        else:
+            return data[0][0]
+
+
 def find_customer(Driver_license,Tin):
     data = []
     header = []
@@ -147,10 +168,11 @@ def run_query(query:str,return_results:bool = True)->List[tuple]:
     return results, header
 
 def insert_row(query:str,row):
-    '''
-    :param query:
+    """
+    :param query: string type for example 'SELECT * FROM ...'
+    :param row: is a tuple of values, for example, (val1,val2, val3...)
     :return:
-    '''
+    """
 
     connection_str = compose_pyodbc_connection()
     conn = pyodbc.connect(connection_str)
