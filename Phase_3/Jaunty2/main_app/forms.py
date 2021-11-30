@@ -4,7 +4,7 @@ from django import forms
 import main_app.views
 
 from django.core.exceptions import ValidationError
-from main_app.utils import get_colors,get_manufacturer_names
+from main_app.utils import get_colors,get_manufacturer_names,run_reports
 import datetime
 import os
 
@@ -40,7 +40,6 @@ def validate_decimals(value):
         raise ValidationError(
             ('%(value)s is not a float'),
             params={'value': value})
-
 
 class QueryVehicleForm(forms.Form):
     '''
@@ -113,10 +112,21 @@ class QueryVehicleForm(forms.Form):
 
 
 class ReportTypes(forms.Form):
-   report_choices = ((1, "Sales by Color"), (2, "Sales by Type"), (3, "Sales by Manufacturer"),
-                     (4, "Gross Customer Income"), (5, "Average Time in Inventory"), (6, "Part Statistics"),
-                     (7, "Below Cost Sales"), (8, "Repairs By Manufacturer/Type/Model"), (9, "Monthly Sales"),)
-   reports = forms.ChoiceField(choices=report_choices)
+    report_choices = ((0, "Sales by Color"), (1, "Sales by Type"), (2, "Sales by Manufacturer"),
+                   (3, "Gross Customer Income"), (4, "Average Time in Inventory"), (5, "Part Statistics"),
+                     (6, "Below Cost Sales"), (7, "Repairs By Manufacturer/Type/Model"), (8, "Monthly Sales"),)
+    reports = forms.ChoiceField(choices=report_choices)
+
+
+    def extract_data(self):
+        data = self.data.dict()
+        data['reports'] = self.report_choices[int(data['reports'])][1]
+        # data['Manufacturer_name'] = self.manufacturer_names[int(data['Manufacturer_name'])][1]
+        # data['Color'] = self.color_choices[int(data['Color'])][1]
+        # user_role = os.environ["USER_ROLE"]
+
+        return data
+
 
 
 class FilterBy(forms.Form):

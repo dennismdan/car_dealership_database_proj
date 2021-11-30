@@ -150,7 +150,6 @@ def get_query_from_file(file_name:str)->str:
     with open(file_path, 'r') as file:
         query_string = file.read().replace('\n', ' ').replace('\t',' ')
         query_string = query_string.replace("  "," ").replace("   "," ")
-
     return query_string
 
 def get_manufacturer_names():
@@ -160,9 +159,100 @@ def get_manufacturer_names():
     manufacturers.append((len(manufacturers), "all"))
     return manufacturers
 
-def add_repair():
+def add_repair(user_input):
+    #query = get_query_from_file("add_repair.txt")
 
-    query = gen_query_add_row("Repair", ())
+    repair_fields = ["VIN", "Customer Id", "Start_date", "Labor_charges", "Total_cost", "Description",
+                     "Completion_date", "Odometer_reading", "Username"]
+    row_tuple = []
+    for key, val in user_input.items():
+
+        if (val != "all") and (val != ""):
+            if key in repair_fields:
+                if key == "VIN":
+                    row_tuple.append(f"(v.VIN='{val}')")
+
+
+            if key == "Customer Id":
+                where_clause.append(f"(List_price > {user_input['min_price']})")
+            if key == "max_price":
+                where_clause.append(f"(List_price < {user_input['max_price']})")
+
+            if val == "sold":  # for sold unsold filter
+                where_clause.append(f"(v.VIN IN ( SELECT s.VIN FROM Sale s))")
+            elif val == "unsold":
+                where_clause.append(f"(v.VIN NOT IN ( SELECT s.VIN FROM Sale s))")
+
+            if key == "Color":
+                where_clause.append(
+                    f"((SELECT DISTINCT STRING_AGG(c.Color,' | ') FROM Color c WHERE c.VIN=v.VIN) LIKE '%{val}%')")
+
+            if key == "keywords":
+                keywords = user_input["keywords"].split(',')
+                for word in keywords:
+                    where_clause.append(f"(Description LIKE '%{word}%')")
+
+
+
+
+
+    query = gen_query_add_row("Repair", user_input)
+    return query
+
+
+
+
+def run_reports(user_input):
+
+    # $MaxSaleDate = "SELECT MAX(Sale_date)from Sale"
+
+    report_fields = ["Sales by Color", "Sales by Type", "Sales by Manufacturer", "Gross Customer Income",
+                     "Average Time in Inventory", "Part Statistics", "Below Cost Sales",
+                     "Repairs By Manufacturer/Type/Model", "Monthly Sales"]
+
+
+    for key, val in user_input.items():
+
+        # if (val != "all") and (val != ""):
+        if val in report_fields:
+            if val == "Sales by Color":
+                query = get_query_from_file("sale_by_color.txt")
+                # print(query)
+                return query
+
+            if val == "Sales by Type":
+                query = get_query_from_file("sale_by_type.txt")
+                return query
+
+            if val == "Sales by Manufacturer":
+                query = get_query_from_file("sale_by_manufacturer.txt")
+                return query
+
+            if val == "Gross Customer Income":
+                query = get_query_from_file("gross_customer_income.txt")
+                return query
+
+            if val == "Average Time in Inventory":
+                query = get_query_from_file("avg_time_in_inventory.txt")
+                return query
+
+            if val == "Part Statistics":
+                query = get_query_from_file("part_statistics.txt")
+                return query
+
+            if val == "Below Cost Sales":
+                query = get_query_from_file("below_cost_sales.txt")
+                return query
+
+            if val == "Repairs By Manufacturer/Type/Model":
+                query = get_query_from_file("repairs_by_manufacturer_type_model.txt")
+                return query
+
+            if val == "Monthly Sales":
+                query = get_query_from_file("monthly_sales.txt")
+                return query
+
+
 
     insert_row(query, (1, 22, 2021-11-20, "xyx", 123, 'ServiceWriter'))
 

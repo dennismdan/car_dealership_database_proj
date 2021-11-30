@@ -1,0 +1,5 @@
+SELECT Vendor_name,
+SUM (Part.price * Part.Quantity) AS [Total_Dollar_Amount], SUM (Quantity) AS [Total_Number_Parts]
+FROM Part
+GROUP BY Vendor_name
+ORDER BY [Total_Dollar_Amount] DESC;

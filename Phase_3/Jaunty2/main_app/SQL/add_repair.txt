@@ -1,0 +1,1 @@
+INSERT INTO Repair (VIN,Customer_id,Start_date,Description, Odometer_reading,Username) VALUES('$VIN','$Customer_id','$Start_date','$Description','$Odometer_reading','$Username');

@@ -10,6 +10,7 @@ from .forms import (LoginForm,
                     AddCustomer,
                     SellVehicle)
 from .forms import AddRepair
+from .utils import run_query, get_search_vehicle_query, run_reports,insert_row
 from .utils import (run_query,
                     get_search_vehicle_query,
                     get_detailed_vehicle_query,
@@ -33,10 +34,9 @@ https://javascript.tutorialink.com/using-javascript-onclick-event-to-pass-data-t
 
 
 def home(request):
-
     data = []
     header = []
-
+    form = QueryVehicleForm()
     home_status = "Search available inventory."
 
     if request.method == 'POST':
@@ -46,9 +46,7 @@ def home(request):
             print("POST statement from home page")
             user_input = form.extract_data()
             query = get_search_vehicle_query(user_input) # generate query
-
             data, header = run_query(query) # run query
-
 
             if len(data) == 0:
                 home_status = "Sorry, it looks like we don’t have that in stock!"
@@ -59,7 +57,6 @@ def home(request):
 
     else:
         form = QueryVehicleForm()
-
 
     vehicle_count = run_query("SELECT COUNT(*) FROM Vehicle")[0][0][0]
 
@@ -100,12 +97,35 @@ def base(request):
 
 
 def reports(request):
-    print("reports")
+    data = []
+    header = []
     form = ReportTypes()
+    home_status = "Get Reports."
+    if request.method == 'POST':
+        form = ReportTypes(request.POST)
+
+        if form.is_valid():
+
+            user_input = form.extract_data()
+            query = run_reports(user_input)  # generate query
+
+            data, header = run_query(query)  # run query
+            if len(data) == 0:
+                home_status = "No data available"
+            else:
+                home_status = "Results found and displayed below."
+        else:
+            home_status = "Inputs fields need to be corrected."
+    else:
+        form = ReportTypes()
 
     return render(request, 'mainlanding/reports.html',
                   {'form': form,
-                   'user':os.environ["USER_ROLE"]})
+                   'data': data,
+                   'status': home_status,
+                   'user': os.environ["USER_ROLE"],
+                   'header': header})
+
 
 
 def repairs(request):
@@ -128,7 +148,6 @@ def login(request):
              "service_writer": "Service Writer",
              "sales_person": "Sales Person",
              "owner": "Owner"}
-
     current_role = os.environ["USER_ROLE"]
 
     return render(request, 'mainlanding/loging.html',
@@ -193,7 +212,6 @@ def loggedin(request):
         # Get the posted form
         form = LoginForm(request.POST)
         user_input = form.data.dict()
-
         print("User Logging in as: ",user_input["users"])
         os.environ["USER_ROLE"] = user_input["users"]
 
@@ -212,11 +230,28 @@ def loggedin(request):
                    'header': header})
 
 def add_repair(request):
-    view_inventory = False
-    data = []
-    header = []
+    data = None
+    header = None
+    if request.method == 'POST':
+        form = AddRepair(request.POST)
 
-    form = AddRepair()
+        if form.is_valid():
+
+            user_input = form.extract_data()
+            print(user_input)
+            query = add_repair(user_input)  # generate query
+            data = insert_row(query)
+            # data = insert_row(query, "user_input")
+            #data, header = run_query(query)  # run query
+            if len(data) == 0:
+                home_status = "No data available"
+            else:
+                home_status = "Results found and displayed below."
+        else:
+            home_status = "Inputs fields need to be corrected."
+
+    else:
+        form = AddRepair()
 
     return render(request, 'mainlanding/add_repair.html',
                   {'form': form,
