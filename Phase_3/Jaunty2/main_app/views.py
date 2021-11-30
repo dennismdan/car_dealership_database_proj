@@ -374,7 +374,7 @@ def sell_vehicle(request,vin):
         if form.is_valid():
             row = form.extract_data()
             try:
-                query = gen_query_add_row("Sale",row)
+                query = gen_query_add_row(table_name="Sale",row = row)
                 insert_row(query, row)
                 status = 'Sold vehicle'
             except:

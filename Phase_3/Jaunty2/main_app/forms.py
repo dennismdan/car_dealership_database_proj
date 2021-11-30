@@ -233,9 +233,18 @@ class AddCustomer(forms.Form):
 
           self.fields[name_list[i]] = form_list[i]
 
-
   def clean_data(self):
         pass
+
+  def extract_data(self):
+      data:dict = self.data.dict()
+
+      if "TIN" in data.keys():
+          row = (data["bu1"],data["bu2"],data["bu3"])
+      else:
+          row = (data["pe1"], data["pe2"], data["pe3"])
+
+      return row
 
 class AddVehicle(forms.Form):
     VIN = forms.CharField()
@@ -303,6 +312,6 @@ class SellVehicle(forms.Form):
         else:
             id = get_customer_id(data["TIN"], "TIN")
 
-        clean_data = (data["VIN"],data["sales_person_username"],id,data["sales_price"],data["sales_date"])
+        row = (data["VIN"],data["sales_person_username"],id,data["sales_price"],data["sales_date"])
 
-        return clean_data
+        return row
