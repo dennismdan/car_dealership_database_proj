@@ -307,7 +307,7 @@ def add_customer(request):
         form = AddCustomer(request.POST)
 
         if form.is_valid():
-            row,row_type = form.extract_data()
+            row, row_type = form.extract_data()
             print(row)
             print(row_type)
 
@@ -319,11 +319,11 @@ def add_customer(request):
                     insert_row(query, row)
 
                 if len(row_type)==3:
-                    query = gen_query_add_row(table_name="Person", row=row_type)
+                    query = gen_query_add_row(table_name="Person", row=row_type,skip_col_list = ["Customer_id"])
                     insert_row(query, row_type)
                 else:
 
-                    query = gen_query_add_row(table_name="Business", row=row_type)
+                    query = gen_query_add_row(table_name="Business", row=row_type,skip_col_list = ["Customer_id"])
                     insert_row(query, row_type)
                 status = 'Customer added successfully!'
 
