@@ -221,35 +221,35 @@ def get_manufacturer_names():
     manufacturers.append((len(manufacturers), "all"))
     return manufacturers
 
-def add_repair(user_input):
-    #query = get_query_from_file("add_repair.txt")
+# def add_repair(user_input):
+#     #query = get_query_from_file("add_repair.txt")
+#
+#     repair_fields = ["VIN", "Customer Id", "Start_date", "Labor_charges", "Total_cost", "Description",
+#                      "Completion_date", "Odometer_reading", "Username"]
+    # row_tuple = []
+    # for key, val in user_input.items():
+    #
+    #     if (val != "all") and (val != ""):
+    #         if key in repair_fields:
+    #             if key == "VIN":
+    #                 row_tuple.append(f"(v.VIN='{val}')")
+    #                 # row_tuple.append(val)
+    #                 print(row_tuple)
+    #
+    #             if key == "Customer Id":
+    #                 row_tuple.append(val)
+    #
+    #             if key == "Start_date":
+    #                 row_tuple.append({val})
+    #
+    #             if key == "Description":
+    #                 row_tuple.append({val})
 
-    repair_fields = ["VIN", "Customer Id", "Start_date", "Labor_charges", "Total_cost", "Description",
-                     "Completion_date", "Odometer_reading", "Username"]
-    row_tuple = []
-    for key, val in user_input.items():
 
-        if (val != "all") and (val != ""):
-            if key in repair_fields:
-                if key == "VIN":
-                    row_tuple.append(f"(v.VIN='{val}')")
-                    # row_tuple.append(val)
-                    print(row_tuple)
-
-                if key == "Customer Id":
-                    row_tuple.append(val)
-
-                if key == "Start_date":
-                    row_tuple.append({val})
-
-                if key == "Description":
-                    row_tuple.append({val})
-
-
-
-    query = gen_query_add_row("Repair", tuple(row_tuple))
-    print(query)
-    return query
+    #
+    # query = gen_query_add_row("Repair", tuple(row_tuple))
+    # print(query)
+    # return query
 
 
 

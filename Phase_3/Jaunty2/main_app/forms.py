@@ -274,7 +274,7 @@ class AddVehicle(forms.Form):
 
 class AddRepair(forms.Form):
   VIN = forms.CharField()
-  Customer_id = forms.CharField()
+  Customer_id = forms.CharField(required=False)
   Start_date = forms.DateField()
   Labor_charges = forms.CharField(required=False)
   Total_cost = forms.CharField(required=False)
@@ -282,6 +282,24 @@ class AddRepair(forms.Form):
   Completion_date = forms.DateField(required=False)
   Odometer_reading = forms.CharField()
   Username = forms.CharField()
+
+
+  def extract_data(self):
+
+      data:dict = self.data.dict()
+
+
+      if len(data["licence_nr"]) > 0:
+          id = get_customer_id(data["licence_nr"], "licence_nr")
+          print("person id is used", id)
+
+      else:
+          id = get_customer_id(data["TIN"], "TIN")
+          print("business id is used", id)
+
+      row = (data["VIN"], id, data["Start_date "], data["Description"], data["Odometer_reading"], data["Username"])
+      print(row)
+      return row
 
 class SellVehicle(forms.Form):
 

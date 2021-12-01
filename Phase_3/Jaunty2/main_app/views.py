@@ -232,37 +232,102 @@ def loggedin(request):
                    'user':os.environ["USER_ROLE"],
                    'vehicle_count':vehicle_count,
                    'header': header})
+def blah():
+    # data = []
+    # header = []
+    form = AddCustomer()
+    # home_status = "Add New Customer."
+    status = " "
+    # message_class = "normal"
+
+    if request.method == 'POST':
+        form = AddCustomer(request.POST)
+
+        if form.is_valid():
+            row, row_type = form.extract_data()
+            print(row)
+            print(row_type)
+
+            try:
+                if len(row) != 0:
+                    query = gen_query_add_row(table_name="Customer", row=row)
+                    insert_row(query, row)
+
+                if len(row_type) == 3:
+                    query = gen_query_add_row(table_name="Person", row=row_type)
+                    insert_row(query, row_type)
+                else:
+
+                    query = gen_query_add_row(table_name="Business", row=row_type)
+                    insert_row(query, row_type)
+                status = 'Customer added successfully!'
+
+
+
+
+
+            except:
+                status = 'There was an error adding new customer. Please try again!.'
+
+    return render(request, 'mainlanding/add_customer.html',
+                  {'form': form,
+
+                   'status': status,
+                   'user': os.environ["USER_ROLE"],
+                   })
+
 
 def add_repair(request):
-    data = None
-    header = None
+    form = AddRepair()
+    status = ""
+    message_class = "normal"
+    # data = None
+    # header = None
     if request.method == 'POST':
         form = AddRepair(request.POST)
 
         if form.is_valid():
 
-            user_input = form.extract_data()
-            print(user_input)
-            query = add_repair(user_input)  # generate query
-            data = insert_row(query)
-            # data = insert_row(query, "user_input")
-            #data, header = run_query(query)  # run query
-            if len(data) == 0:
-                home_status = "No data available"
-            else:
-                home_status = "Results found and displayed below."
-        else:
-            home_status = "Inputs fields need to be corrected."
-
-    else:
-        form = AddRepair()
+            data = form.extract_data()
+            print(data)
+            try:
+                query = gen_query_add_row(table_name="Repair", row=data)
+                insert_row(query, data)
+                status = 'Congratulations, the vehicle sold successfully!'
+                message_class = "success"
+            except:
+                status = 'There was an issue selling the vehicle. Please contact IT.'
+                message_class = "error"
 
     return render(request, 'mainlanding/add_repair.html',
-                  {'form': form,
-                   'data': data,
-                  'user':os.environ["USER_ROLE"],
-                   'header': header})
+                  {
+                      "form": form,
+                      "status": status,
+                      "message_class": message_class,
+                      'user': os.environ["USER_ROLE"]
+                  }
+                  )
 
+    #         query = add_repair(user_input)  # generate query
+    #         data = insert_row(query)
+    #         # data = insert_row(query, "user_input")
+    #         #data, header = run_query(query)  # run query
+    #         if len(data) == 0:
+    #             home_status = "No data available"
+    #         else:
+    #             home_status = "Results found and displayed below."
+    #     else:
+    #         home_status = "Inputs fields need to be corrected."
+    #
+    # else:
+    #     form = AddRepair()
+
+    # return render(request, 'mainlanding/add_repair.html',
+    #               {'form': form,
+    #                'data': data,
+    #               'user':os.environ["USER_ROLE"],
+    #                'header': header})
+    #
 
 def total_vehicles_available():
     pass
