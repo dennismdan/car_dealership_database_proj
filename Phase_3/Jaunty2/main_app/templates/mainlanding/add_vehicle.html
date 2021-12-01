@@ -1,4 +1,4 @@
-{% extends "main_app/base.html" %}
+{% extends "mainlanding/base.html" %}
 
 {% block style %}
         .home {
@@ -18,31 +18,17 @@
 {% block title %} Add Vehicle {% endblock %}
 
 {% block content %}
-<h1> Add New Vehicle to the Inventory </h1>
-<br>
-<br>
-<form name = "add_vehicle" action = "{% url 'add_vehicle' vin %}" method = "POST" >{% csrf_token %}
-    {{ form.as_p }}
-    <button type="submit">Add Vehicle</button>
+<h1> Add Vehicle to the Inventory </h1>
+
+<form name = "update_vehicle_type" action = "{% url 'update_vehicle_type' %}" method = "POST" >{% csrf_token %}
+    {{ vehicle_type_form.as_p }}
+    <button type="submit">Update Form</button>
+
 </form>
-<br>
-<h3 class={{message_class}}> {{ status }} </h3>
-<br>
-<br>
-<button class="done" type="submit" onclick="history.back()">Done</button>
-{% endblock %}
-
-
 
 <form name = "add_vehicle" action = "{% url 'add_vehicle' %}" method = "POST" >{% csrf_token %}
-    {{ form.as_p }}
+    {{ add_vehicle_form.as_p }}
     <button type="submit">Add Vehicle</button>
-
 </form>
-
-
-
-
-
 {% endblock %}
 

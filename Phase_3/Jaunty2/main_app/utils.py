@@ -72,12 +72,25 @@ def compose_pyodbc_connection():
 
     return connection_string
 
-def gen_query_add_row(table_name:str,row:tuple)->str:
+def gen_query_add_row(table_name:str,row:tuple, skip_col_list:list = [])->str:
     colQuery = f"SELECT COLUMN_NAME FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME='{table_name}';"
 
     colnames,_ = run_query(colQuery)
+    print(colnames)
+    colnames = [col[0] for col in colnames]
 
-    colnames = ','.join([col[0] for col in colnames])
+    if len(skip_col_list)>0:
+        print("skipping cols")
+        new_cols = []
+        for col in colnames:
+            if col in skip_col_list:
+                print(col)
+                continue
+            new_cols.append(col)
+
+        colnames = new_cols
+
+    colnames = ','.join(colnames)
     row_len = len(row)
 
     row =",".join(["?" for i in range(row_len)])
