@@ -71,12 +71,12 @@ def test_compose_pyodbc_connection():
 
 
 def test_cleanup_null_cols():
-    test_data = (1,None,"a",None)
+    test_data = [(1,None,"a",None),(1,None,"a","b")]
     test_cols = ["a","b","c","d"]
     data,cols = cleanup_null_cols(test_data,test_cols)
 
-    assert data == (1,"a")
-    assert cols == ["a","c"]
+    assert data == [(1,"a",None),(1,"a","b")]
+    assert cols == ["a","c","d"]
 
 def test_get_detailed_vehicle_query():
     os.environ["USER_ROLE"] = "inventory_clerk"

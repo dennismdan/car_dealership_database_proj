@@ -8,7 +8,8 @@ from .forms import (LoginForm,
                     LookupCustomer,
                     FilterBy,
                     AddCustomer,
-                    SellVehicle)
+                    SellVehicle,
+                    AddVehicleForm)
 from .forms import AddRepair
 from .utils import run_query, get_search_vehicle_query, run_reports,insert_row
 from .utils import (run_query,
@@ -193,7 +194,7 @@ def filter_vehicles(request):
 
 def update_add_customer(request, ):
     home_status = "Setting the add customer template with individual or business."
-
+    print(home_status)
     path = request.path
 
     customer_type = path[1:-1]
@@ -266,8 +267,33 @@ def add_repair(request):
 def total_vehicles_available():
     pass
 
-def add_vehicle():
-    pass
+def add_vehicle(request):
+    form = AddVehicleForm()
+    status = ""
+    message_class = "normal"
+
+    if request.method == 'POST':
+        form = AddVehicleForm(data=request.POST)
+
+        if form.is_valid():
+            row = form.extract_data()
+            try:
+                query = gen_query_add_row(table_name="Vehicle",row = row)
+                insert_row(query, row)
+                status = 'Congratulations, the vehicle sold successfully!'
+                message_class = "success"
+            except:
+                status = 'There was an issue selling the vehicle. Please contact IT.'
+                message_class = "error"
+
+    return render(request, 'mainlanding/add_vehicle.html',
+                  {
+                      "form": form,
+                      "status": status,
+                      "message_class":message_class,
+                      'user': os.environ["USER_ROLE"]
+                  }
+                  )
 
 def vehicle_details(request,vin):
     '''
@@ -276,8 +302,8 @@ def vehicle_details(request,vin):
     :return:
     '''
 
-    sales_data = {'header':[], 'data':[], "status":""}
-    repair_data = {'header':[], 'data':[], "status":""}
+    sales_data = {'header':[], 'data':[()], "status":""}
+    repair_data = {'header':[], 'data':[()], "status":""}
 
     vehicle_data = get_data_for_template(vin,query_type="vehicle")
 
@@ -297,36 +323,51 @@ def vehicle_details(request,vin):
                   context)
 
 def add_customer(request):
-    data = []
-    header = []
+    # data = []
+    # header = []
     form = AddCustomer()
-    home_status = "Add New Customer."
+    # home_status = "Add New Customer."
+    status = " "
+    # message_class = "normal"
 
     if request.method == 'POST':
         form = AddCustomer(request.POST)
 
         if form.is_valid():
-            print("Add New Customer")
-            user_input = form.extract_data()
-            query = add_customer_query(user_input) # generate query, get_search_vehicle_query(user_input)
-            data, header = run_query(query) # run query
+            row,row_type = form.extract_data()
+            print(row)
+            print(row_type)
 
-            if len(data) == 0:
-                home_status = "Please fill the required field"
-            else:
-                home_status = "Added successfully "
-        else:
-            home_status = "Inputs fields need to be corrected."
 
-    else:
-        form = AddCustomer()
+
+            try:
+                if len(row)!=0:
+                    query = gen_query_add_row(table_name="Customer", row=row)
+                    insert_row(query, row)
+
+                if len(row_type)==3:
+                    query = gen_query_add_row(table_name="Person", row=row_type)
+                    insert_row(query, row_type)
+                else:
+
+                    query = gen_query_add_row(table_name="Business", row=row_type)
+                    insert_row(query, row_type)
+                status = 'Customer added successfully!'
+
+
+
+
+
+            except:
+                status = 'There was an error adding new customer. Please try again!.'
+
 
     return render(request, 'mainlanding/add_customer.html',
                   {'form': form,
-                   'data': data,
-                   'status':home_status,
+
+                   'status':status,
                    'user':os.environ["USER_ROLE"],
-                   'header': header})
+                   })
 
 def lookup_customer(request):
     data = []
@@ -359,33 +400,36 @@ def lookup_customer(request):
 
 
 def sell_vehicle(request,vin):
-    query = f"SELECT Invoice_price FROM Vehicle WHERE VIN = {vin}"
+    query = f"SELECT Invoice_price FROM Vehicle WHERE VIN = '{vin}'"
+
     data, _ = run_query(query)
     invoice_price = data[0][0]
-    os.environ["SALES_INVOICE_PRICE"] = str(invoice_price)
-    os.environ["SALES_VIN"] = str(vin)
-    form = SellVehicle()
+
+    form = SellVehicle(vin,invoice_price)
     status = ""
+    message_class = "normal"
 
 
     if request.method == 'POST':
-        form = SellVehicle(request.POST)
+        form = SellVehicle(data=request.POST, vin=vin,invoice_price=invoice_price)
 
         if form.is_valid():
             row = form.extract_data()
             try:
                 query = gen_query_add_row(table_name="Sale",row = row)
                 insert_row(query, row)
-                status = 'Sold vehicle'
+                status = 'Congratulations, the vehicle sold successfully!'
+                message_class = "success"
             except:
                 status = 'There was an issue selling the vehicle. Please contact IT.'
-                raise
+                message_class = "error"
 
     return render(request, 'mainlanding/sell_vehicle.html',
                   {
                       "form": form,
                       "vin": vin,
                       "status": status,
+                      "message_class":message_class,
                       'user': os.environ["USER_ROLE"]
                   }
                   )

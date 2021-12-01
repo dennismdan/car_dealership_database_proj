@@ -40,11 +40,14 @@
             <td><b>{{ head }}</b></td>
         {% endfor %}
     </tr>
-    <tr>
-    {% for cell in vehicle_data.data %}
-        <td> {{ cell }}</td>
-    {% endfor %}
-    </tr>
+        </tr>
+        {% for row in vehicle_data.data %}
+        <tr>
+            {% for cell in row  %}
+            <td> {{ cell }}</td>
+            {% endfor %}
+        </tr>
+        {% endfor %}
 </table>
 <b> {{ vehicle_data.status }}</b>
 <br>
@@ -58,11 +61,14 @@
                 <td><b>{{ head }}</b></td>
             {% endfor %}
         </tr>
+        {% for row in sales_data.data %}
         <tr>
-        {% for cell in sales_data.data %}
+            {% for cell in row  %}
             <td> {{ cell }}</td>
-        {% endfor %}
+            {% endfor %}
         </tr>
+        {% endfor %}
+
     </table>
     <b> {{ sales_data.status }}</b>
     <br>
@@ -75,18 +81,20 @@
                 <td><b>{{ head }}</b></td>
             {% endfor %}
         </tr>
+        {% for row in repair_data.data %}
         <tr>
-        {% for cell in repair_data.data %}
+            {% for cell in row %}
             <td> {{ cell }}</td>
-        {% endfor %}
+            {% endfor %}
         </tr>
+        {% endfor %}
     </table>
     <b> {{ repair_data.status }}</b>
     <br>
     <br>
 {% endif %}
 
-<button type="submit" onclick="history.back()">Done</button>
+<button class="done" type="submit" onclick="history.back()">Done</button>
 
 {% if user in "sales_person,owner" %}
     <button type="submit" onclick="location.href='{% url 'sell_vehicle' vin %}'" name='sell_vehicle'>Sell</button>

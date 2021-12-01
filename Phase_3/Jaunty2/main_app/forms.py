@@ -51,21 +51,31 @@ def price_check(sales_price):
     else:
         return sales_price
 
-def customer_lookup(id):
-
+def business_lookup(id):
     if id == "":
         return id
     else:
-        data,_,_ = find_customer(id,id)
+        data,_,_ = find_customer("",id)
+        if len(data)==0:
+            raise ValidationError(
+                ('Customer not found in business customers, please add customer'))
+        else:
+            return id
+
+def person_lookup(id):
+    if id == "":
+        return id
+    else:
+        data,_,_ = find_customer(id,"")
 
         if len(data)==0:
             raise ValidationError(
-                ('Customer not found, please add customer'))
+                ('Customer not found in persons customers, please add customer'))
         else:
             return id
 
 def date_check(date):
-    today = datetime.now(timezone_est).date()
+    today = datetime.now(timezone_est)
     tomorrow = today + timedelta(days=1)
     far_past = today - timedelta(days=7)
 
@@ -118,7 +128,7 @@ class QueryVehicleForm(forms.Form):
                               initial=len(color_choices)-1,
                               required=False)
     Year = forms.IntegerField(min_value=1920,
-                                    max_value= date.today().year,
+                                    max_value= date.today().year+1,
                                     label="Model Year",
                                     required=False)
     min_price = forms.DecimalField(decimal_places=2,
@@ -275,45 +285,145 @@ class AddRepair(forms.Form):
 
 class SellVehicle(forms.Form):
 
-    VIN = forms.CharField(
-        required=True,
-        initial=int(os.environ["SALES_VIN"]),
-    )
-    sales_person_username = forms.CharField(
-        validators=[sales_person_lookup],
-        required=True,
-    )
-    licence_nr = forms.IntegerField(
-        validators=[customer_lookup]
-    )
+    def __init__(self,vin="None",invoice_price="none", *args, **kwargs):
 
-    TIN = forms.IntegerField(
-        validators=[customer_lookup]
-    )
-    sales_price = forms.DecimalField(
-        decimal_places=2,
-        label = "Sales Price",
-        required=True,
-        validators=[validate_decimals,price_check])
+        super(SellVehicle, self).__init__(*args, **kwargs)
 
-    sales_date= forms.DateTimeField(
-        label = "Sales date",
-        initial = datetime.now(timezone_est),
-        required=True,
-        validators=[date_check])
+        self.vin = vin
+        self.invoice_price = invoice_price
+        os.environ["SALES_INVOICE_PRICE"] = str(invoice_price)
+
+        self.fields['VIN'] = forms.CharField(
+            required=True,
+            initial=self.vin,
+        )
+        self.fields['sales_person_username'] = forms.CharField(
+            validators=[sales_person_lookup],
+            required=True,
+        )
+        self.fields["licence_nr"] = forms.CharField(
+            validators=[person_lookup],
+            required=False
+        )
+
+        self.fields["TIN"] = forms.CharField(
+            validators=[business_lookup],
+            required=False
+        )
+        self.fields["sales_price"] = forms.DecimalField(
+            decimal_places=2,
+            label="Sales Price",
+            required=True,
+            validators=[validate_decimals, price_check])
+
+        self.fields["sales_date"] = forms.DateTimeField(
+            label="Sales date",
+            initial=datetime.now(timezone_est),
+            required=True,
+            validators=[date_check])
+
 
     def clean(self):
         cleaned_data = super().clean()
-        if not cleaned_data.get('licence_nr') and not cleaned_data.get('licence_nr'):  # This will check for None or Empty
-            raise ValidationError({'licence_nr': 'Even one of licence_nr or TIN should have a value.'})
+        if not cleaned_data.get('licence_nr') and not cleaned_data.get('TIN'):  # This will check for None or Empty
+            raise ValidationError({'licence_nr': 'One of licence_nr or TIN should have a value.'})
 
     def extract_data(self):
         data = self.data.dict()
-        if data["licence_nr"]!= "":
+
+        if len(data["licence_nr"])>0:
             id = get_customer_id(data["licence_nr"], "licence_nr")
+            print("person id is used",id)
+
         else:
             id = get_customer_id(data["TIN"], "TIN")
+            print("business id is used",id)
 
         row = (data["VIN"],data["sales_person_username"],id,data["sales_price"],data["sales_date"])
 
         return row
+
+class AddVehicleForm(forms.Form):
+    '''
+   TODO: right now color chices are hard coded
+   we want to retrieve these with a query pass as parameter
+   TODO: Vehicle type, manufacturer name, and model year, keyword is a drop down
+   '''
+
+    vehicle_choices = [(0,"Car"),(1,"Convertible"),(2,"SUV"),(3,"Truck"),(4,"VanMinivan"),(5,"all")]
+
+    year_choices = [(r, r) for r in range(1920, date.today().year + 1)]
+    year_choices.append((0,0))
+
+    VIN = forms.ChoiceField(required=True)
+    year = forms.IntegerField(min_value=1920,
+                                    max_value= date.today().year+1,
+                                    label="Model Year",
+                                    required=True)
+    model_name = forms.ChoiceField(required=True)
+    Description = forms.CharField(label="Description", required=False)
+    Invoice_price = forms.DecimalField(decimal_places=2,
+                                   label="Invoice Price",
+                                   required=True,
+                                   validators=[validate_decimals]
+                                   )
+    #TODO: List_price ?
+    sales_date = forms.DateTimeField(
+        label = "Inventory date",
+        initial = datetime.now(timezone_est),
+        required = True,
+        validators = [date_check])
+    manufacturer_name = forms.CharField(required=True)
+    inventory_clerck_name = forms.CharField(
+            validators=[sales_person_lookup],
+            required=True,
+        )
+
+    colors = forms.CharField(help_text="ex: red,green",required = True)
+    vehicle_type = forms.ChoiceField(choices=vehicle_choices,
+                                     label = "Vehicle Type",
+                                     initial=5)
+
+
+
+
+
+
+
+
+    def __init__(self, *args, **kwargs):
+
+        super(QueryVehicleForm, self).__init__(*args, **kwargs)
+
+        vehicle_type = self.fields['vehicle_type']
+
+        cars = {}
+        convertible = {}
+        suv = {}
+        truck = {}
+        van = {}
+
+        vehicle_choices = [(0, "Car"),
+                           (1, "Convertible"),
+                           (2, "SUV"), (3, "Truck"), (4, "VanMinivan"), (5, "all")]
+        vehicle_type_fields = {"Car":cars,
+                               "Convertible":convertible,
+                               "SUV":suv,
+                               "Truck":truck,
+                               "VanMinivan":van,
+                               }
+        for key, value in vehicle_type_fields[vehicle_type].items():
+            self.fields['key'] = value
+
+
+    def extract_data(self):
+        data = self.data.dict()
+        data['Vehicle_type'] = self.vehicle_choices[int(data['Vehicle_type'])][1]
+        data['Manufacturer_name'] = self.manufacturer_names[int(data['Manufacturer_name'])][1]
+        data['Color'] = self.color_choices[int(data['Color'])][1]
+        user_role = os.environ["USER_ROLE"]
+
+        if user_role in workers[0:2]:
+            data['sold_unsold_filter'] = self.sold_unsold_options[int(data['sold_unsold_filter'])][1]
+
+        return data
