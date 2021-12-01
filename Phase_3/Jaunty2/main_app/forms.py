@@ -193,8 +193,8 @@ class FilterBy(forms.Form):
    filter = forms.ChoiceField(choices=filter_choices)
 
 class LookupCustomer(forms.Form):
-   drivers_licens_nr = forms.IntegerField(required=False)
-   tin = forms.IntegerField(required=False)
+   drivers_licens_nr = forms.CharField(required=False)
+   tin = forms.CharField(required=False)
 
    def extract_data(self):
        data = self.data.dict()
