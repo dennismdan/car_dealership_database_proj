@@ -9,7 +9,8 @@ from .forms import (LoginForm,
                     FilterBy,
                     AddCustomer,
                     SellVehicle,
-                    AddVehicleForm)
+                    AddVehicleForm,
+                    SelectVehicleTypeForm)
 from .forms import AddRepair
 from .utils import run_query, get_search_vehicle_query, run_reports,insert_row
 from .utils import (run_query,
@@ -267,34 +268,6 @@ def add_repair(request):
 def total_vehicles_available():
     pass
 
-def add_vehicle(request):
-    form = AddVehicleForm()
-    status = ""
-    message_class = "normal"
-
-    if request.method == 'POST':
-        form = AddVehicleForm(data=request.POST)
-
-        if form.is_valid():
-            row = form.extract_data()
-            try:
-                query = gen_query_add_row(table_name="Vehicle",row = row)
-                insert_row(query, row)
-                status = 'Congratulations, the vehicle sold successfully!'
-                message_class = "success"
-            except:
-                status = 'There was an issue selling the vehicle. Please contact IT.'
-                message_class = "error"
-
-    return render(request, 'mainlanding/add_vehicle.html',
-                  {
-                      "form": form,
-                      "status": status,
-                      "message_class":message_class,
-                      'user': os.environ["USER_ROLE"]
-                  }
-                  )
-
 def vehicle_details(request,vin):
     '''
     https://stackoverflow.com/questions/29153593/passing-variable-from-django-template-to-view
@@ -418,3 +391,79 @@ def sell_vehicle(request,vin):
                       'user': os.environ["USER_ROLE"]
                   }
                   )
+
+def add_vehicle(request):
+    add_vehicle_form = AddVehicleForm()
+    vehicle_type_form = SelectVehicleTypeForm()
+    status = ""
+    message_class = "normal"
+
+    if request.method == 'POST':
+        add_vehicle_form = AddVehicleForm(data=request.POST)
+
+        if add_vehicle_form.is_valid():
+            manufacturer_row,vehicle_row,car_type_row,color_data = add_vehicle_form.extract_data()
+
+            try:
+                print(manufacturer_row)
+                print(vehicle_row)
+                print(car_type_row)
+                print(color_data)
+                print("Adding Manufacturer")
+                query = gen_query_add_row(table_name="Manufacturer", row=manufacturer_row)
+                insert_row(query, manufacturer_row)
+
+                print("Adding Vehicle")
+                query = gen_query_add_row(table_name="Vehicle",row = vehicle_row)
+                insert_row(query, vehicle_row)
+
+                print("Adding Colors")
+                for row in color_data:
+                    query = gen_query_add_row(table_name="Color", row=row)
+                    insert_row(query, row)
+
+                status = 'Congratulations, the vehicle sold successfully!'
+                message_class = "success"
+
+            except:
+                status = 'There was an issue selling the vehicle. Please contact IT.'
+                message_class = "error"
+
+    return render(request, 'mainlanding/add_vehicle.html',
+                  {
+                      "vehicle_type_form": vehicle_type_form,
+                      "add_vehicle_form": add_vehicle_form,
+                      "status": status,
+                      "message_class":message_class,
+                      'user': os.environ["USER_ROLE"]
+                  }
+                  )
+
+def update_vehicle_type(request):
+
+    add_vehicle_form = AddVehicleForm()
+    vehicle_type_form = SelectVehicleTypeForm()
+
+    status = ""
+    message_class = "normal"
+
+    if request.method == 'POST':
+        vehicle_type_form = SelectVehicleTypeForm(data=request.POST)
+
+        if vehicle_type_form.is_valid():
+            vehicle_type = vehicle_type_form.extract_data()
+            print("Updated Add Vehicle Form to vehicle type ", vehicle_type)
+            os.environ["VEHICLE_TYPE"] = vehicle_type
+
+            add_vehicle_form = AddVehicleForm()
+
+    return render(request, 'mainlanding/add_vehicle.html',
+                  {
+                      "vehicle_type_form": vehicle_type_form,
+                      "add_vehicle_form": add_vehicle_form,
+                      "status": status,
+                      "message_class":message_class,
+                      'user': os.environ["USER_ROLE"]
+                  }
+                  )
+

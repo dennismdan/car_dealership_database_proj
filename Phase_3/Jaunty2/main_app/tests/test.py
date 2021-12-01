@@ -20,7 +20,12 @@ def test_gen_query_add_row():
     row = ("val",)
     query = gen_query_add_row(table,row)
     expected = "INSERT INTO test_table(col1) VALUES (?) "
-    assert expected == query
+    assert query == expected
+    table = 'test_table_02'
+    row = ("Phone_number","Email")
+    query = gen_query_add_row(table,row, skip_col_list=["id"])
+    expected = "INSERT INTO test_table_02(Phone_number,Email) VALUES (?,?) "
+    assert query == expected
 
 
 def test_run_query():
