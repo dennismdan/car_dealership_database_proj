@@ -250,11 +250,11 @@ class AddCustomer(forms.Form):
       data:dict = self.data.dict()
 
       if "TIN" in data.keys():
-          row_customer_type = (data["bu1"],data["bu2"],data["bu3"])
+          row_customer_type = (data["business_name"],data["contact_name"],data["contact_title"],data["TIN"])
       else:
-          row_customer_type = (data["pe1"], data["pe2"], data["pe3"])
+          row_customer_type = (data["first_name"], data["last_name"], data["driver_license_nr"])
 
-      row_customer = (data["cu1"],data["cu2"])
+      row_customer = (data["phone_number"],data["email"],data["street_address"],data["city"],data["state"],data["postal_code"])
 
       return row_customer, row_customer_type
 
