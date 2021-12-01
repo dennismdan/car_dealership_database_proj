@@ -297,36 +297,51 @@ def vehicle_details(request,vin):
                   context)
 
 def add_customer(request):
-    data = []
-    header = []
+    # data = []
+    # header = []
     form = AddCustomer()
-    home_status = "Add New Customer."
+    # home_status = "Add New Customer."
+    status = " "
+    # message_class = "normal"
 
     if request.method == 'POST':
         form = AddCustomer(request.POST)
 
         if form.is_valid():
-            print("Add New Customer")
-            user_input = form.extract_data()
-            query = add_customer_query(user_input) # generate query, get_search_vehicle_query(user_input)
-            data, header = insert_row(query, user_input) # run query
+            row,row_type = form.extract_data()
+            print(row)
+            print(row_type)
 
-            if len(data) == 0:
-                home_status = "Please fill the required field"
-            else:
-                home_status = "Added successfully "
-        else:
-            home_status = "Inputs fields need to be corrected."
 
-    else:
-        form = AddCustomer()
+
+            try:
+                if len(row)!=0:
+                    query = gen_query_add_row(table_name="Customer", row=row)
+                    insert_row(query, row)
+
+                if len(row_type)==3:
+                    query = gen_query_add_row(table_name="Person", row=row_type)
+                    insert_row(query, row_type)
+                else:
+
+                    query = gen_query_add_row(table_name="Business", row=row_type)
+                    insert_row(query, row_type)
+                status = 'Customer added successfully!'
+
+
+
+
+
+            except:
+                status = 'There was an error adding new customer. Please try again!.'
+
 
     return render(request, 'mainlanding/add_customer.html',
                   {'form': form,
-                   'data': data,
-                   'status':home_status,
+
+                   'status':status,
                    'user':os.environ["USER_ROLE"],
-                   'header': header})
+                   })
 
 def lookup_customer(request):
     data = []

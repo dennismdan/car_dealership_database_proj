@@ -317,29 +317,11 @@ def run_reports(user_input):
 
 
 
-def add_customer_query(user_input:dict)->str:
-    '''
-    :param user_input: dictionary of form {col1:value,col2:value}
-    :return:
 
-    TODO: format query per project structure
-    '''
-
-    add_user_type = os.environ["ADD_USER_TYPE"]
-
-
-    for key, val in user_input.items():
-
-        if add_user_type == "individual":
-            query = gen_query_add_row('Person', )
-            return query
-
-
-
-
-    return query
 
 def get_detailed_vehicle_query(vin: str):
+
+
     user_role = os.environ["USER_ROLE"]
 
     if user_role not in ["manager","owner"]:
