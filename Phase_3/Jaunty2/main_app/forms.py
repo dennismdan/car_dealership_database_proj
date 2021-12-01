@@ -4,7 +4,13 @@ from django import forms
 import main_app.views
 
 from django.core.exceptions import ValidationError
-from main_app.utils import get_colors,get_manufacturer_names,run_reports, find_customer, get_customer_id, run_query
+from main_app.utils import (get_colors,
+                            get_manufacturer_names,
+                            run_reports,
+                            find_customer,
+                            get_customer_id,
+                            run_query,check_if_instance_exists)
+
 from datetime import datetime, date, timedelta
 from pytz import timezone
 import os
@@ -98,6 +104,17 @@ def employee_lookup(username):
         ))
     else:
         return username
+
+def check_vin_esitance(vin):
+
+    value_exists = check_if_instance_exists("Vehicle",["VIN"],[("VIN",vin)])
+
+    if value_exists:
+        raise ValidationError((
+            f"Vehicle VIN already in inventory"
+        ))
+    else:
+        return vin
 
 class LoginForm(forms.Form):
     user = forms.CharField(max_length=100)
@@ -350,7 +367,7 @@ class AddVehicleForm(forms.Form):
    TODO: Vehicle type, manufacturer name, and model year, keyword is a drop down
    '''
 
-    VIN = forms.CharField(required=True)
+    VIN = forms.CharField(required=True,validators=[check_vin_esitance])
     year = forms.IntegerField(min_value=1920,
                                     max_value= date.today().year+1,
                                     label="Model Year",
@@ -368,7 +385,7 @@ class AddVehicleForm(forms.Form):
         required = True,
         validators = [date_check])
     manufacturer_name = forms.CharField(required=True)
-    inventory_clerk_name = forms.CharField(
+    inventory_clerk_username = forms.CharField(
             validators=[employee_lookup],
             required=True,
         )
@@ -403,39 +420,39 @@ class AddVehicleForm(forms.Form):
 
         manufacturer_row = [data["manufacturer_name"]]
         vehicle_row = [VIN,data["year"],data["model_name"],data["description"],data["invoice_price"],
-                        data["inventory_date"],data["manufacturer_name"],data["inventory_clerk_name"]]
+                        data["inventory_date"],data["manufacturer_name"],data["inventory_clerk_username"]]
 
         color_data = [(VIN,color) for color in data["colors"].split(",")]
 
-        car_type_row = {"type":vehicle_type,"data":[VIN]}
+        car_type_dict = {"type":vehicle_type,"data":[VIN]}
 
         if vehicle_type == "Car":
             doors_ct = data["doors_ct"]
-            car_type_row["data"].append(doors_ct)
+            car_type_dict["data"].append(doors_ct)
 
         elif vehicle_type == "Convertible":
             roof_type = data["roof_type"]
             back_seat_ct = data["back_seat_ct"]
-            car_type_row["data"].extend([roof_type,back_seat_ct])
+            car_type_dict["data"].extend([roof_type,back_seat_ct])
 
         elif vehicle_type == "Truck":
             cargo_capacity = data["cargo_capacity"]
             cargo_cover_type = data["cargo_cover_type"]
             axle_ct = data["axle_ct"]
-            car_type_row["data"].extend([cargo_capacity, cargo_cover_type,axle_ct])
+            car_type_dict["data"].extend([cargo_capacity, cargo_cover_type,axle_ct])
 
         elif vehicle_type == "VanMinivan":
             drive_back_door = data["drive_back_door"]
-            car_type_row["data"].append(drive_back_door)
+            car_type_dict["data"].append(drive_back_door)
 
         elif vehicle_type == "SUV":
             drive_train_type = data["drive_train_type"]
             cup_holder_ct = data["cup_holder_ct"]
-            car_type_row["data"].extend([drive_train_type, cup_holder_ct])
+            car_type_dict["data"].extend([drive_train_type, cup_holder_ct])
 
-        car_type_row["data"] = tuple(car_type_row["data"])
+        car_type_dict["data"] = tuple(car_type_dict["data"])
 
-        return tuple(manufacturer_row),tuple(vehicle_row),tuple(car_type_row),color_data
+        return tuple(manufacturer_row),tuple(vehicle_row),car_type_dict,color_data
 
 class SelectVehicleTypeForm(forms.Form):
     '''

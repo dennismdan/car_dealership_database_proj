@@ -36,6 +36,32 @@ def get_customer_id(customer_unique_nr,customer_type):
         else:
             return data[0][0]
 
+def check_if_instance_exists(table_name:str,
+                             select_cols:List[str],
+                             where_clause:List[tuple])->bool:
+    """
+
+    :param table_name:
+    :param select_cols:
+    :param where_clause: ex [(col1,val1),(col2,val2)...]
+    :return:
+    """
+    if len(select_cols)==0:
+        columns = " * "
+    else:
+        columns =", ".join(select_cols)
+
+    where = " AND ".join([pair[0]+" = "+f"'{str(pair[1])}'" for pair in where_clause])
+
+    query = f"SELECT "+columns+" FROM "+table_name+" WHERE "+where
+
+    results,_ = run_query(query)
+
+    if len(results)>0:
+        return True
+    else:
+        return False
+
 
 def find_customer(Driver_license,Tin):
     data = []
@@ -76,7 +102,7 @@ def gen_query_add_row(table_name:str,row:tuple, skip_col_list:list = [])->str:
     colQuery = f"SELECT COLUMN_NAME FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME='{table_name}';"
 
     colnames,_ = run_query(colQuery)
-    print(colnames)
+
     colnames = [col[0] for col in colnames]
 
     if len(skip_col_list)>0:
@@ -91,10 +117,12 @@ def gen_query_add_row(table_name:str,row:tuple, skip_col_list:list = [])->str:
         colnames = new_cols
 
     colnames = ','.join(colnames)
+
     row_len = len(row)
 
     row =",".join(["?" for i in range(row_len)])
     query = f"INSERT INTO {table_name}({colnames}) VALUES ({row}) "
+    print("Insert row query: ", query)
     return query
 
 def get_search_vehicle_query(user_input:dict)->str:
@@ -200,16 +228,21 @@ def insert_row(query:str,row):
     :param row: is a tuple of values, for example, (val1,val2, val3...)
     :return:
     """
+    try:
+        connection_str = compose_pyodbc_connection()
+        conn = pyodbc.connect(connection_str)
+        cursor = conn.cursor()
+        cursor.execute(query,row)
+        conn.commit()
+        cursor.close()
+        status = "Row Added"
+        message_class = "success"
+    except Exception as e:
+        print(e)
+        status = "Issue adding a new row, could be that it already exists."
+        message_class = "error"
 
-    connection_str = compose_pyodbc_connection()
-    conn = pyodbc.connect(connection_str)
-
-    cursor = conn.cursor()
-    cursor.execute(query,row)
-    conn.commit()
-    cursor.close()
-
-    return
+    return status,message_class
 
 def get_colors():
     query = "SELECT DISTINCT Color FROM Color"
