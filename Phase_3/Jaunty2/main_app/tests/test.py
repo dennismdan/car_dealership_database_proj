@@ -8,12 +8,21 @@ from ..utils import (gen_query_add_row,
                      get_manufacturer_names,
                      compose_pyodbc_connection,
                      cleanup_null_cols,
-                     get_detailed_vehicle_query)
+                     get_detailed_vehicle_query,
+                     check_if_instance_exists)
 
 '''
 https://coderedirect.com/questions/192135/pyodbc-insert-into-sql
 https://thepythonguru.com/inserting-rows/
 '''
+
+def test_check_if_instance_exists():
+    result = check_if_instance_exists("test_table_02",["Phone_number"],[("id",1)])
+    assert not result
+    result = check_if_instance_exists("Car",["VIN"],[("VIN",'073HOEWCHAF741925')])
+    assert result
+    result = check_if_instance_exists("Car",["VIN"],[("VIN",'073HOEWCHAF741925'),("Doors_count",5)])
+    assert not result
 
 def test_gen_query_add_row():
     table = 'test_table'

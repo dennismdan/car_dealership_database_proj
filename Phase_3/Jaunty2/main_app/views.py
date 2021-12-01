@@ -412,40 +412,47 @@ def add_vehicle(request):
     vehicle_type_form = SelectVehicleTypeForm()
     status = ""
     message_class = "normal"
+    color = {"status": status, "css_class": message_class}
+    vehicle_type = {"status": status, "css_class": message_class}
+    vehicle = {"status": status, "css_class": message_class}
+    manu = {"status": status, "css_class": message_class}
 
     if request.method == 'POST':
         add_vehicle_form = AddVehicleForm(data=request.POST)
 
         if add_vehicle_form.is_valid():
-            manufacturer_row,vehicle_row,car_type_row,color_data = add_vehicle_form.extract_data()
 
-            try:
-                print(manufacturer_row)
-                print(vehicle_row)
-                print(car_type_row)
-                print(color_data)
-                print("Adding Manufacturer")
-                query = gen_query_add_row(table_name="Manufacturer", row=manufacturer_row)
-                insert_row(query, manufacturer_row)
+            manufacturer_row,vehicle_row,car_type_dict,color_data = add_vehicle_form.extract_data()
 
-                print("Adding Vehicle")
-                query = gen_query_add_row(table_name="Vehicle",row = vehicle_row)
-                insert_row(query, vehicle_row)
+            print("Adding Manufacturer")
+            query = gen_query_add_row(table_name="Manufacturer", row=manufacturer_row)
+            status_manu,class_manu = insert_row(query, manufacturer_row)
+            manu = {"status":status_manu,"css_class":class_manu}
 
-                print("Adding Colors")
-                for row in color_data:
-                    query = gen_query_add_row(table_name="Color", row=row)
-                    insert_row(query, row)
+            print("Adding Vehicle")
+            query = gen_query_add_row(table_name="Vehicle",row = vehicle_row,skip_col_list=["List_price"])
+            status_vehicle,class_vehicle = insert_row(query, vehicle_row)
+            vehicle = {"status": status_vehicle, "css_class": class_vehicle}
 
-                status = 'Congratulations, the vehicle sold successfully!'
-                message_class = "success"
+            print("Adding Vehicle Type Data")
+            table = car_type_dict["type"]
+            row = car_type_dict["data"]
+            query = gen_query_add_row(table_name=table,row = row)
+            status_vehicle_type,class_vehicle_type = insert_row(query, row)
+            vehicle_type = {"status": status_vehicle_type, "css_class": class_vehicle_type}
 
-            except:
-                status = 'There was an issue selling the vehicle. Please contact IT.'
-                message_class = "error"
+            print("Adding Colors")
+            for row in color_data:
+                query = gen_query_add_row(table_name="Color", row=row)
+                status_color,class_color = insert_row(query, row)
+                color = {"status": status_color, "css_class": class_color}
+
 
     return render(request, 'mainlanding/add_vehicle.html',
-                  {
+                  {   "color":color,
+                      "vehicle_type":vehicle_type,
+                      "vehicle":vehicle,
+                      "manu":manu,
                       "vehicle_type_form": vehicle_type_form,
                       "add_vehicle_form": add_vehicle_form,
                       "status": status,
@@ -461,6 +468,10 @@ def update_vehicle_type(request):
 
     status = ""
     message_class = "normal"
+    color = {"status": status, "css_class": message_class}
+    vehicle_type = {"status": status, "css_class": message_class}
+    vehicle = {"status": status, "css_class": message_class}
+    manu = {"status": status, "css_class": message_class}
 
     if request.method == 'POST':
         vehicle_type_form = SelectVehicleTypeForm(data=request.POST)
@@ -473,7 +484,10 @@ def update_vehicle_type(request):
             add_vehicle_form = AddVehicleForm()
 
     return render(request, 'mainlanding/add_vehicle.html',
-                  {
+                  {   "color":color,
+                      "vehicle_type":vehicle_type,
+                      "vehicle":vehicle,
+                      "manu":manu,
                       "vehicle_type_form": vehicle_type_form,
                       "add_vehicle_form": add_vehicle_form,
                       "status": status,
