@@ -8,7 +8,8 @@ from .forms import (LoginForm,
                     LookupCustomer,
                     FilterBy,
                     AddCustomer,
-                    SellVehicle)
+                    SellVehicle,
+                    AddVehicleForm)
 from .forms import AddRepair
 from .utils import run_query, get_search_vehicle_query, run_reports,insert_row
 from .utils import (run_query,
@@ -266,8 +267,33 @@ def add_repair(request):
 def total_vehicles_available():
     pass
 
-def add_vehicle():
-    pass
+def add_vehicle(request):
+    form = AddVehicleForm()
+    status = ""
+    message_class = "normal"
+
+    if request.method == 'POST':
+        form = AddVehicleForm(data=request.POST)
+
+        if form.is_valid():
+            row = form.extract_data()
+            try:
+                query = gen_query_add_row(table_name="Vehicle",row = row)
+                insert_row(query, row)
+                status = 'Congratulations, the vehicle sold successfully!'
+                message_class = "success"
+            except:
+                status = 'There was an issue selling the vehicle. Please contact IT.'
+                message_class = "error"
+
+    return render(request, 'mainlanding/add_vehicle.html',
+                  {
+                      "form": form,
+                      "status": status,
+                      "message_class":message_class,
+                      'user': os.environ["USER_ROLE"]
+                  }
+                  )
 
 def vehicle_details(request,vin):
     '''
@@ -374,7 +400,7 @@ def lookup_customer(request):
 
 
 def sell_vehicle(request,vin):
-    query = f"SELECT Invoice_price FROM Vehicle WHERE VIN = {vin}"
+    query = f"SELECT Invoice_price FROM Vehicle WHERE VIN = '{vin}'"
 
     data, _ = run_query(query)
     invoice_price = data[0][0]

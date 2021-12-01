@@ -23,11 +23,6 @@ https://www.b-list.org/weblog/2008/nov/09/dynamic-forms/
 TODO: apply business constraints   
 '''
 
-
-class LoginForm(forms.Form):
-    user = forms.CharField(max_length=100)
-    password = forms.CharField(widget=forms.PasswordInput())
-
 def validate_decimals(value):
     values=str(value).split(".")
     two_parts = len(values)
@@ -133,7 +128,7 @@ class QueryVehicleForm(forms.Form):
                               initial=len(color_choices)-1,
                               required=False)
     Year = forms.IntegerField(min_value=1920,
-                                    max_value= date.today().year,
+                                    max_value= date.today().year+1,
                                     label="Model Year",
                                     required=False)
     min_price = forms.DecimalField(decimal_places=2,
@@ -177,7 +172,6 @@ class QueryVehicleForm(forms.Form):
 
         return data
 
-
 class ReportTypes(forms.Form):
     report_choices = ((0, "Sales by Color"), (1, "Sales by Type"), (2, "Sales by Manufacturer"),
                    (3, "Gross Customer Income"), (4, "Average Time in Inventory"), (5, "Part Statistics"),
@@ -194,12 +188,9 @@ class ReportTypes(forms.Form):
 
         return data
 
-
-
 class FilterBy(forms.Form):
    filter_choices = ((1, "Sold Vehicles"), (2, "Unsold Vehicles"), (3, "All Vehicles"),)
    filter = forms.ChoiceField(choices=filter_choices)
-
 
 class LookupCustomer(forms.Form):
    drivers_licens_nr = forms.IntegerField(required=False)
@@ -208,7 +199,6 @@ class LookupCustomer(forms.Form):
    def extract_data(self):
        data = self.data.dict()
        return data
-
 
 class AddCustomer(forms.Form):
   phone_number = forms.CharField()
@@ -253,20 +243,18 @@ class AddCustomer(forms.Form):
 
           self.fields[name_list[i]] = form_list[i]
 
-
   def clean_data(self):
         pass
 
   def extract_data(self):
       data:dict = self.data.dict()
 
-
       if "TIN" in data.keys():
-          row_customer_type = (data["business_name"],data["contact_name"],data["contact_title"],data["TIN"])
+          row_customer_type = (data["bu1"],data["bu2"],data["bu3"])
       else:
-          row_customer_type = (data["first_name"], data["last_name"], data["driver_license_nr"])
+          row_customer_type = (data["pe1"], data["pe2"], data["pe3"])
 
-      row_customer = (data["phone_number"],data["email"],data["street_address"],data["city"],data["state"],data["postal_code"])
+      row_customer = (data["cu1"],data["cu2"])
 
       return row_customer, row_customer_type
 
@@ -283,7 +271,6 @@ class AddVehicle(forms.Form):
 
     def clean_data(self):
         pass
-
 
 class AddRepair(forms.Form):
   VIN = forms.CharField()
@@ -314,12 +301,12 @@ class SellVehicle(forms.Form):
             validators=[sales_person_lookup],
             required=True,
         )
-        self.fields["licence_nr"] = forms.IntegerField(
+        self.fields["licence_nr"] = forms.CharField(
             validators=[person_lookup],
             required=False
         )
 
-        self.fields["TIN"] = forms.IntegerField(
+        self.fields["TIN"] = forms.CharField(
             validators=[business_lookup],
             required=False
         )
@@ -352,6 +339,91 @@ class SellVehicle(forms.Form):
             id = get_customer_id(data["TIN"], "TIN")
             print("business id is used",id)
 
-        row = (int(data["VIN"]),data["sales_person_username"],int(id),data["sales_price"],data["sales_date"])
+        row = (data["VIN"],data["sales_person_username"],id,data["sales_price"],data["sales_date"])
 
         return row
+
+class AddVehicleForm(forms.Form):
+    '''
+   TODO: right now color chices are hard coded
+   we want to retrieve these with a query pass as parameter
+   TODO: Vehicle type, manufacturer name, and model year, keyword is a drop down
+   '''
+
+    vehicle_choices = [(0,"Car"),(1,"Convertible"),(2,"SUV"),(3,"Truck"),(4,"VanMinivan"),(5,"all")]
+
+    year_choices = [(r, r) for r in range(1920, date.today().year + 1)]
+    year_choices.append((0,0))
+
+    VIN = forms.ChoiceField(required=True)
+    year = forms.IntegerField(min_value=1920,
+                                    max_value= date.today().year+1,
+                                    label="Model Year",
+                                    required=True)
+    model_name = forms.ChoiceField(required=True)
+    Description = forms.CharField(label="Description", required=False)
+    Invoice_price = forms.DecimalField(decimal_places=2,
+                                   label="Invoice Price",
+                                   required=True,
+                                   validators=[validate_decimals]
+                                   )
+    #TODO: List_price ?
+    sales_date = forms.DateTimeField(
+        label = "Inventory date",
+        initial = datetime.now(timezone_est),
+        required = True,
+        validators = [date_check])
+    manufacturer_name = forms.CharField(required=True)
+    inventory_clerck_name = forms.CharField(
+            validators=[sales_person_lookup],
+            required=True,
+        )
+
+    colors = forms.CharField(help_text="ex: red,green",required = True)
+    vehicle_type = forms.ChoiceField(choices=vehicle_choices,
+                                     label = "Vehicle Type",
+                                     initial=5)
+
+
+
+
+
+
+
+
+    def __init__(self, *args, **kwargs):
+
+        super(QueryVehicleForm, self).__init__(*args, **kwargs)
+
+        vehicle_type = self.fields['vehicle_type']
+
+        cars = {}
+        convertible = {}
+        suv = {}
+        truck = {}
+        van = {}
+
+        vehicle_choices = [(0, "Car"),
+                           (1, "Convertible"),
+                           (2, "SUV"), (3, "Truck"), (4, "VanMinivan"), (5, "all")]
+        vehicle_type_fields = {"Car":cars,
+                               "Convertible":convertible,
+                               "SUV":suv,
+                               "Truck":truck,
+                               "VanMinivan":van,
+                               }
+        for key, value in vehicle_type_fields[vehicle_type].items():
+            self.fields['key'] = value
+
+
+    def extract_data(self):
+        data = self.data.dict()
+        data['Vehicle_type'] = self.vehicle_choices[int(data['Vehicle_type'])][1]
+        data['Manufacturer_name'] = self.manufacturer_names[int(data['Manufacturer_name'])][1]
+        data['Color'] = self.color_choices[int(data['Color'])][1]
+        user_role = os.environ["USER_ROLE"]
+
+        if user_role in workers[0:2]:
+            data['sold_unsold_filter'] = self.sold_unsold_options[int(data['sold_unsold_filter'])][1]
+
+        return data
