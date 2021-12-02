@@ -233,8 +233,7 @@ class AddCustomer(forms.Form):
       first_name = forms.CharField()
       last_name = forms.CharField()
       driver_license_nr = forms.CharField()
-      customer_id = forms.CharField()
-      person_fields = [first_name,last_name,driver_license_nr,customer_id]
+      person_fields = [first_name,last_name,driver_license_nr]
       person_names = ["first_name", "last_name", "driver_license_nr", "customer_id"]
 
       # Business Fields
@@ -242,8 +241,7 @@ class AddCustomer(forms.Form):
       contact_name = forms.CharField()
       contact_title = forms.CharField()
       TIN = forms.CharField()
-      customer_id = forms.CharField()
-      business_fields = [business_name,contact_name,contact_title,TIN,customer_id]
+      business_fields = [business_name,contact_name,contact_title,TIN]
       business_names = ["business_name", "contact_name", "contact_title", "TIN", "customer_id"]
 
       add_user_type = os.environ["ADD_USER_TYPE"] # can either be person or business
@@ -267,13 +265,15 @@ class AddCustomer(forms.Form):
       data:dict = self.data.dict()
 
       if "TIN" in data.keys():
-          row_customer_type = (data["business_name"],data["contact_name"],data["contact_title"],data["TIN"])
+          row_customer_type = [data["TIN"],data["contact_name"],data["contact_title"],data["business_name"]]
+          customer_type = "business"
       else:
-          row_customer_type = (data["first_name"], data["last_name"], data["driver_license_nr"])
+          row_customer_type = [data["driver_license_nr"],data["first_name"], data["last_name"]]
+          customer_type = "person"
 
       row_customer = (data["phone_number"],data["email"],data["street_address"],data["city"],data["state"],data["postal_code"])
 
-      return row_customer, row_customer_type
+      return row_customer, row_customer_type, customer_type
 
 class AddVehicle(forms.Form):
     VIN = forms.CharField()

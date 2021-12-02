@@ -1,17 +1,5 @@
 {% extends "mainlanding/base.html" %}
 
-<!-- <p>If customer is person click Individual</p>-->
-<!-- <form action = "{% url 'individual' %}" method = "POST">-->
-<!--     <button type="submit">Individual</button>-->
-<!-- </form>-->
-
-<!-- <p>If customer is business click Business</p>-->
-<!-- <form action = "{% url 'individual' %}" method = "POST">>-->
-<!--     <button type="submit">Business</button>-->
-<!-- </form>-->
-<!--</body>-->
-<!--</html>-->
-
 {% block content %}
 <h1> Add Customer: {{ customer }}</h1>
 <div>
@@ -24,5 +12,11 @@
      {{ form.as_p }}
     <input type="submit"  value="Save">
 </form>
+<br>
+<p class={{customer_status.css_class}}> Customer table status: {{ customer_status.status }} </p>
+<p class={{customer_type_status.css_class}}> {{ customer_type }} status: {{ customer_type_status.status }} </p>
+<br>
+<br>
+<button class="done" type="submit" onclick="history.back()">Done</button>
 {% endblock %}
 

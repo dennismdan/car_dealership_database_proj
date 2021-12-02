@@ -208,46 +208,47 @@ def add_customer(request):
     # data = []
     # header = []
     form = AddCustomer()
-    # home_status = "Add New Customer."
-    status = " "
+    status = ""
+    message_class = "normal"
+    customer_type = ""
+    customer_status = {"status": status, "css_class": message_class}
+    customer_type_status = {"status": status, "css_class": message_class}
+
+
     # message_class = "normal"
 
     if request.method == 'POST':
         form = AddCustomer(request.POST)
 
         if form.is_valid():
-            row,row_type = form.extract_data()
-            print(row)
-            print(row_type)
+            row,row_type,customer_type = form.extract_data()
 
+            if len(row)!=0:
+                query = gen_query_add_row(table_name="Customer", row=row, skip_col_list=["Customer_id"])
+                status,css_class = insert_row(query, row)
+                customer_status = {"status": status, "css_class": css_class}
 
+                colnames = ["Phone_number","Email","Street_address","City","State","Postal_code"]
+                where_clause = " AND ".join([f"{colnames[i]} = '{row[i]}'" for i in range(len(row))])
+                query = "SELECT Customer_id FROM Customer WHERE "+where_clause
+                customer_id = run_query(query)[0][0][0]
+            if len(row_type)==3:
+                row_type.insert(1,customer_id)
+                query = gen_query_add_row(table_name="Person", row=row_type)
+                status,css_class= insert_row(query, row_type)
 
-            try:
-                if len(row)!=0:
-                    query = gen_query_add_row(table_name="Customer", row=row)
-                    insert_row(query, row)
+            else:
+                row_type.insert(1,customer_id)
+                query = gen_query_add_row(table_name="Business", row=row_type)
+                status,css_class = insert_row(query, row_type)
 
-                if len(row_type)==3:
-                    query = gen_query_add_row(table_name="Person", row=row_type)
-                    insert_row(query, row_type)
-                else:
-
-                    query = gen_query_add_row(table_name="Business", row=row_type)
-                    insert_row(query, row_type)
-                status = 'Customer added successfully!'
-
-
-
-
-
-            except:
-                status = 'There was an error adding new customer. Please try again!.'
-
+            customer_type_status = {"status": status, "css_class": css_class}
 
     return render(request, 'mainlanding/add_customer.html',
                   {'form': form,
-
-                   'status':status,
+                   'customer_type':customer_type,
+                   'customer_status':customer_status,
+                   'customer_type_status':customer_type_status,
                    'user':os.environ["USER_ROLE"],
                    })
 
@@ -420,7 +421,7 @@ def add_repair(request):
         if form.is_valid():
 
             user_input = form.extract_data()
-            print(user_input)
+
             query = add_repair(user_input)  # generate query
             data = insert_row(query)
             # data = insert_row(query, "user_input")
@@ -450,7 +451,7 @@ def update_repair(request):
         if form.is_valid():
 
             user_input = form.extract_data()
-            print(user_input)
+
             query = add_repair(user_input)  # generate query
             data = insert_row(query)
             # data = insert_row(query, "user_input")
@@ -480,7 +481,7 @@ def add_part(request):
         if form.is_valid():
 
             user_input = form.extract_data()
-            print(user_input)
+
             query = add_repair(user_input)  # generate query
             data = insert_row(query)
             # data = insert_row(query, "user_input")
