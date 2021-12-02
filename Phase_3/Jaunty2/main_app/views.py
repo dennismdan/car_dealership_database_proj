@@ -89,6 +89,8 @@ def reports(request):
     header = []
     form = ReportTypes()
     home_status = "Get Reports."
+    report_type = ""
+
     if request.method == 'POST':
         form = ReportTypes(request.POST)
 
@@ -96,6 +98,7 @@ def reports(request):
 
             user_input = form.extract_data()
             query = run_reports(user_input)  # generate query
+            report_type = user_input["reports"]
 
             data, header = run_query(query)  # run query
             if len(data) == 0:
@@ -107,12 +110,16 @@ def reports(request):
     else:
         form = ReportTypes()
 
-    return render(request, 'mainlanding/reports.html',
-                  {'form': form,
+    context = {'form': form,
                    'data': data,
+                   'report_type':report_type,
                    'status': home_status,
                    'user': os.environ["USER_ROLE"],
-                   'header': header})
+                   'header': header}
+
+    print(context)
+    return render(request, 'mainlanding/reports.html',
+                  context)
 
 
 def monthlysales_drilldown(request,year,month):
@@ -134,7 +141,7 @@ def monthlysales_drilldown(request,year,month):
                   'mainlanding/monthly_sales_details.html',
                   context)
 
-def gross_customer_income_drilldown(request,Customer_id):
+def gross_customer_income_drilldown(request,CustomerName):
     sales_data = {'header': [], 'data': [()], "status": ""}
     repair_data = {'header': [], 'data': [()], "status": ""}
 
@@ -152,6 +159,7 @@ def gross_customer_income_drilldown(request,Customer_id):
     return render(request,
                   'mainlanding/gross_customer_details.html',
                   context)
+
 def repairsby_manu_type_model_drill(request,manufacturer_name):
     vehicle_data = {'header': [], 'data': [()], "status": ""}
     model_data = {'header': [], 'data': [()], "status": ""}

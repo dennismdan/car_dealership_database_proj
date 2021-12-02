@@ -514,7 +514,6 @@ def repair_by_manutypemodel_vehicle_drill_query(manufacturer_name):
 
     return query
 
-
 def repair_by_manutypemodel_model_drill_query(manufacturer_name):
     query = f"SELECT Model_name,SUM(Labor_charges) AS All_labor_Costs, SUM(Total_cost) AS Total_Repair_cost, \
             (SUM(Labor_charges) - SUM(Total_cost)) AS All_Parts_Costs, COUNT(Start_date) AS Count_Repairs \

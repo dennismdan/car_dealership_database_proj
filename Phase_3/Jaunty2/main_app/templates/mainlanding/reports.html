@@ -30,16 +30,22 @@
         {% for head in header %}
             <td><b>{{ head }}</b></td>
         {% endfor %}
-       </tr>
+    </tr>
     {% for row in data %}
-        <tr onclick="location.href='{% url 'monthlysales_drilldown' row.0 row.1 %}'" name='login'>
+        {% if report_type == "Monthly Sales" %}
+            <tr onclick="location.href='{% url 'monthlysales_drilldown' row.0 row.1 %}'" name='reports'>
+        {% elif report_type == "Gross Customer Income" %}
+            <tr onclick="location.href='{% url 'gross_customer_income_drilldown' row.0 %}'" name='reports'>
+        {% elif report_type == "Repairs By Manufacturer/Type/Model" %}
+            <tr onclick="location.href='{% url 'repairsby_manu_type_model_drill' row.0 %}'" name='reports'>
+        {% else %}
+            <tr name='reports'>
+        {% endif %}
 
         {% for cell in row %}
             <td> {{ cell }}</td>
-
         {% endfor %}
         </tr>
-
     {% endfor %}
 </table>
 
