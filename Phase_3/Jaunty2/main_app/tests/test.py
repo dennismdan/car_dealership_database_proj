@@ -1,5 +1,7 @@
 import os
 import time
+from datetime import datetime, date
+from pytz import timezone
 
 import pytest
 from ..utils import (gen_query_add_row,
@@ -9,12 +11,71 @@ from ..utils import (gen_query_add_row,
                      compose_pyodbc_connection,
                      cleanup_null_cols,
                      get_detailed_vehicle_query,
-                     check_if_instance_exists)
+                     check_if_instance_exists,
+                     is_repair_complete,
+                     repair_start_date_is_unique,
+                     repair_starts_before_ends,
+
+                     )
 
 '''
 https://coderedirect.com/questions/192135/pyodbc-insert-into-sql
 https://thepythonguru.com/inserting-rows/
 '''
+timezone_est = timezone('EST')
+
+def test_is_repair_complete():
+    data = {"VIN": "00AIVKIDO01487633", "Customer_id": 128, "Start_date": '2020-12-13 00:00:00.000'}
+    complete_repair = is_repair_complete(data)
+
+    assert complete_repair
+
+    data = {"VIN": "made-up-vin", "Customer_id": 128, "Start_date": datetime.now(timezone_est).date()}
+    complete_repair = is_repair_complete(data)
+
+    assert not complete_repair
+
+    date = datetime.strptime('2020-12-13 00:00:00.000','%Y-%m-%d %H:%M:%S.%f')
+
+    data = {"VIN": "00AIVKIDO01487633", "Customer_id": 128, "Start_date": date}
+    complete_repair = is_repair_complete(data)
+    assert complete_repair
+
+    date = date.strftime('%Y-%m-%d %H:%M:%S.%f')[0:-3]
+    assert '2020-12-13 00:00:00.000' == date
+
+    data = {"VIN": "00AIVKIDO01487633", "Customer_id": 128, "Start_date": date}
+    complete_repair = is_repair_complete(data)
+    assert complete_repair
+
+def test_repair_start_date_is_unique():
+    date = datetime.strptime('2020-12-13 00:00:00.000','%Y-%m-%d %H:%M:%S.%f')
+
+    VIN = "00AIVKIDO01487633"
+    Start_date = date
+
+    result = repair_start_date_is_unique(VIN, Start_date)
+
+    assert not result
+
+    result = check_if_instance_exists("Repair",
+                                      select_cols = [],
+                                      where_clause = [("VIN",VIN),("Start_date",date)])
+    assert result
+
+def test_repair_starts_before_ends():
+    start_date = datetime.strptime('2020-12-13 00:00:00.000', '%Y-%m-%d %H:%M:%S.%f')
+    end_date = datetime.strptime('2020-12-13 00:00:00.000', '%Y-%m-%d %H:%M:%S.%f')
+    result = repair_starts_before_ends(start_date,end_date)
+    assert result
+    start_date = datetime.strptime('2020-12-13 00:00:00.000', '%Y-%m-%d %H:%M:%S.%f')
+    end_date = datetime.strptime('2020-12-15 00:00:00.000', '%Y-%m-%d %H:%M:%S.%f')
+    result = repair_starts_before_ends(start_date,end_date)
+    assert result
+    start_date = datetime.strptime('2020-12-13 00:00:00.000', '%Y-%m-%d %H:%M:%S.%f')
+    end_date = datetime.strptime('2020-12-10 00:00:00.000', '%Y-%m-%d %H:%M:%S.%f')
+    result = repair_starts_before_ends(start_date,end_date)
+    assert not result
 
 def test_check_if_instance_exists():
     result = check_if_instance_exists("test_table_02",["Phone_number"],[("id",1)])

@@ -20,12 +20,11 @@ urlpatterns = [
     path('individual/', views.update_add_customer, name="individual"),
     path('business/', views.update_add_customer, name="business"),
     path('vehicle_details/<str:vin>/', views.vehicle_details, name="vehicle_details"),
-    path('add_repair/', views.add_repair, name="add_repair"),
     path('sell_vehicle/<str:vin>/', views.sell_vehicle, name="sell_vehicle"),
     path('update_vehicle_type/', views.update_vehicle_type, name="update_vehicle_type"),
-    path('repairs/', views.repairs, name="repairs"),
     path('add_vehicle/', views.add_vehicle, name="add_vehicle"),
+    path('repairs/', views.repairs, name="repairs"),
     path('add_repair/', views.add_repair, name="add_repair"),
-    path('update_repair/', views.update_repair, name="update_repair"),
+    path('edit_repair/', views.edit_repair, name="edit_repair"),
     path('add_part/', views.add_part, name="add_part")
 ]

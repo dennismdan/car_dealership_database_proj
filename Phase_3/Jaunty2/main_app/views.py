@@ -10,7 +10,11 @@ from .forms import (LoginForm,
                     AddCustomer,
                     SellVehicle,
                     AddVehicleForm,
-                    SelectVehicleTypeForm)
+                    SelectVehicleTypeForm,
+                    FindRepairForm,
+                    AddPartForm,
+                    AddRepairForm,
+                    ViewEditRepairForm)
 from .forms import AddRepair
 from .utils import run_query, get_search_vehicle_query, run_reports,insert_row
 from .utils import (run_query,
@@ -407,14 +411,49 @@ def update_vehicle_type(request):
                   }
                   )
 
-
 def repairs(request):
     print("repairs")
+    # Return lookup repair form
+    # Return part form part fields
+    # allow form fields to be edited
+    # also return add part form
+    # view_type: find_repair(no fields or no repairs),
+    #            view_repair(only view no edit - repair is closed),
+    #            edit_repair(any time there are results),
+    #            add_repair(when adding new repair)
+    #form = {edit_repair:form, add_part:form}
+
+    form = FindRepairForm()
+    view_type = "find_repair"
+
+    if request.method == 'POST':
+        repair_form = FindRepairForm(data=request.POST)
+        if repair_form.is_valid():
+            data,edit_allowed = repair_form.extract_data()
+            repair_form = ViewEditRepairForm(data,edit_allowed)
+
+            if edit_allowed:
+                view_type = "edit_repair"
+                part_form = AddPartForm()
+                form = {edit_repair: repair_form, add_part: part_form}
+            else:
+                view_type = "view_repair"
+                form = repair_form
+
+
     return render(request,
                   'mainlanding/repairs.html',
-                  {'user':os.environ["USER_ROLE"]})
+                  {'user':os.environ["USER_ROLE"],
+                   "form":form,
+                   "view_type":view_type,
+                   })
 
 def add_repair(request):
+    # Return add repair form with add button
+    # view_type: view_repair (no fields or no repairs),
+    #            edit_repair (any time there are results),
+    #            add_repair (when adding new repair)
+    #
     data = None
     header = None
     if request.method == 'POST':
@@ -444,7 +483,16 @@ def add_repair(request):
                   'user':os.environ["USER_ROLE"],
                    'header': header})
 
-def update_repair(request):
+def edit_repair(request):
+    # Return part form part fields
+    # allow form fields to be edited
+    # also return add part form
+    # view_type: find_repair(no fields or no repairs),
+    #            view_repair(only view no edit - repair is closed),
+    #            edit_repair(any time there are results),
+    #            add_repair(when adding new repair)
+    #form = {edit_repair:form, add_part:form}
+
     data = None
     header = None
     if request.method == 'POST':
@@ -475,6 +523,15 @@ def update_repair(request):
                    'header': header})
 
 def add_part(request):
+    # triggered by add part button
+    # returns same forms as before but with status for add parts
+    # Return lookup repair form
+    # view_type: find_repair(no fields or no repairs),
+    #            view_repair(only view no edit - repair is closed),
+    #            edit_repair(any time there are results),
+    #            add_repair(when adding new repair)
+    #form = {edit_repair:form, add_part:form}
+    #
     data = None
     header = None
     if request.method == 'POST':

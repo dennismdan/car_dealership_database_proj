@@ -19,13 +19,52 @@
 
 {% block content %}
 <h1> View, Edit and Create Repairs </h1>
-<form name = "search_vehicle_form" action = "{% url 'repairs' %}" method = "POST" >
-    {% csrf_token %}
-    <button type="submit">View Repair</button>
-
-</form>
-
-<button type="submit" onclick="location.href='{% url 'lookup_customer' %}'" name='lookup_customer'>Lookup Customer</button>
+<br>
+<button type="submit" onclick="location.href='{% url 'repairs' %}'" name='repairs'>View and Edit Repair</button>
 <button type="submit" onclick="location.href='{% url 'add_repair' %}'" name='add_repair'>Add Repair</button>
+<button type="submit" onclick="location.href='{% url 'lookup_customer' %}'" name='lookup_customer'>Lookup Customer</button>
+<!--view_type: find_repair (no fields or no repairs),
+               view_repair (only view no edit - repair is closed),
+               edit_repair (any time there are results),
+               add_repair (when adding new repair)
+                -->
+    {% if view_type == "find_repair" %}
+        <br>
+        <br>
+        <h3> Lookup Repair </h3>
+
+        <form name = "repairs" action = "{% url 'repairs' %} " method = "POST" >{% csrf_token %}
+             {{ form.as_p }}
+            <input type="submit"  value="Search">
+        </form>
+
+    {% elif view_type == "view_repair" %}
+        <h3> View Repair </h3>
+
+        <form name = "edit_repair" action = "{% url 'edit_repair' %} " method = "POST" >{% csrf_token %}
+            {% if view_type == "edit_repair" %}
+                {{ form.edit_repair.as_p }}
+                <input type="submit"  value="Update Report">
+            {% else %}
+                {{ form.as_p }}
+            {% endif %}
+        </form>
+
+        {% if view_type == "edit_repair" %}
+            <h3> Add Part to Current Repair</h3>
+            <form name = "add_part" action = "{% url 'add_part' %} " method = "POST" >{% csrf_token %}
+                 {{ form.add_part.as_p }}
+                <input type="submit"  value="Add Part">
+            </form>
+        {% endif %}
+
+    {% elif view_type == "add_repair" %}
+        <h3> Add Repair </h3>
+        <form name = "add_repair" action = "{% url 'add_repair' %} " method = "POST" >{% csrf_token %}
+             {{ form.as_p }}
+            <input type="submit"  value="Add Repair">
+        </form>
+    {% endif %}
+
 {% endblock %}
 

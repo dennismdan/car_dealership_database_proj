@@ -9,7 +9,8 @@ from main_app.utils import (get_colors,
                             run_reports,
                             find_customer,
                             get_customer_id,
-                            run_query,check_if_instance_exists)
+                            run_query,check_if_instance_exists,
+                            is_repair_complete)
 
 from datetime import datetime, date, timedelta
 from pytz import timezone
@@ -105,7 +106,7 @@ def employee_lookup(username):
     else:
         return username
 
-def check_vin_esitance(vin):
+def check_vin_exsitance(vin):
 
     value_exists = check_if_instance_exists("Vehicle",["VIN"],[("VIN",vin)])
 
@@ -289,17 +290,6 @@ class AddVehicle(forms.Form):
     def clean_data(self):
         pass
 
-class AddRepair(forms.Form):
-  VIN = forms.CharField()
-  Customer_id = forms.CharField()
-  Start_date = forms.DateField()
-  Labor_charges = forms.CharField()
-  Total_cost = forms.CharField()
-  Description = forms.CharField()
-  Completion_date = forms.DateField()
-  Odometer_reading = forms.CharField()
-  Username = forms.CharField()
-
 class SellVehicle(forms.Form):
 
     def __init__(self,vin="None",invoice_price="none", *args, **kwargs):
@@ -339,7 +329,6 @@ class SellVehicle(forms.Form):
             required=True,
             validators=[date_check])
 
-
     def clean(self):
         cleaned_data = super().clean()
         if not cleaned_data.get('licence_nr') and not cleaned_data.get('TIN'):  # This will check for None or Empty
@@ -367,7 +356,7 @@ class AddVehicleForm(forms.Form):
    TODO: Vehicle type, manufacturer name, and model year, keyword is a drop down
    '''
 
-    VIN = forms.CharField(required=True,validators=[check_vin_esitance])
+    VIN = forms.CharField(required=True, validators=[check_vin_exsitance])
     year = forms.IntegerField(min_value=1920,
                                     max_value= date.today().year+1,
                                     label="Model Year",
@@ -477,12 +466,29 @@ class SelectVehicleTypeForm(forms.Form):
 
         return vehicle_type_selected
 
+class FindRepairForm(forms.Form):
+
+    VIN = forms.CharField(required=True)
+    Customer_id = forms.IntegerField(required=True)
+    Start_date = forms.DateField(
+        label = "Repair Start Date",
+        help_text="format: yyyy-mm-dd",
+        initial = datetime.now(timezone_est).date(),
+        required = True,
+    )
+
+    def extract_data(self):
+        data = self.data.dict()
+        data = {"VIN":data["VIN"],"Customer_id":data["Customer_id"],"Start_date":data["Start_date"]}
+        can_edit = not is_repair_complete(data)
+        return data, can_edit
+
 class AddPartForm(forms.Form):
     '''
-   TODO: right now color chices are hard coded
-   we want to retrieve these with a query pass as parameter
-   TODO: Vehicle type, manufacturer name, and model year, keyword is a drop down
-   '''
+    TODO: right now color chices are hard coded
+    we want to retrieve these with a query pass as parameter
+    TODO: Vehicle type, manufacturer name, and model year, keyword is a drop down
+    '''
 
     vehicle_type = os.getenv("VEHICLE_TYPE","Car")
     print(vehicle_type)
@@ -493,12 +499,27 @@ class AddPartForm(forms.Form):
     vehicle_type = forms.ChoiceField(choices=vehicle_choices,
                                                     label="Vehicle Type",
                                                     initial=initial_choice)
-
+    def clean(self):
+        cleaned_data = super().clean()
+        # TODO: Check if
+        if not cleaned_data.get('licence_nr') and not cleaned_data.get('TIN'):  # This will check for None or Empty
+            raise ValidationError({'licence_nr': 'One of licence_nr or TIN should have a value.'})
     def extract_data(self):
         data = self.data.dict()
         vehicle_type_selected = self.vehicle_choices[int(data['vehicle_type'])][1]
 
         return vehicle_type_selected
+
+class AddRepair(forms.Form):
+  VIN = forms.CharField()
+  Customer_id = forms.CharField()
+  Start_date = forms.DateField()
+  Labor_charges = forms.CharField()
+  Total_cost = forms.CharField()
+  Description = forms.CharField()
+  Completion_date = forms.DateField()
+  Odometer_reading = forms.CharField()
+  Username = forms.CharField()
 
 class AddRepairForm(forms.Form):
     '''
@@ -524,24 +545,60 @@ class AddRepairForm(forms.Form):
         return vehicle_type_selected
 
 class ViewEditRepairForm(forms.Form):
-    '''
-   TODO: right now color chices are hard coded
-   we want to retrieve these with a query pass as parameter
-   TODO: Vehicle type, manufacturer name, and model year, keyword is a drop down
-   '''
 
-    vehicle_type = os.getenv("VEHICLE_TYPE","Car")
-    print(vehicle_type)
-    vehicle_choices = [(0, "Car"), (1, "Convertible"), (2, "SUV"), (3, "Truck"), (4, "VanMinivan")]
+    def __init__(self,init_data,edit_allowed,add_repair, *args, **kwargs):
 
-    initial_choice = [car[0] for car in vehicle_choices if car[1] == "Car"][0]
+        super(SellVehicle, self).__init__(*args, **kwargs)
+        cols = ["VIN","Customer_id","Start_date","Labor_charges",
+                "Total_cost","Description","Completion_date","Odometer_reading","Username"]
 
-    vehicle_type = forms.ChoiceField(choices=vehicle_choices,
-                                                    label="Vehicle Type",
-                                                    initial=initial_choice)
+        if add_repair:
+            field_view_mode = {col:False for col in cols}
+        elif edit_allowed:
+            field_view_mode = {col:True for col in cols}
+            field_view_mode["Completion_date"] = False
+            field_view_mode["Total_cost"] = False
+        else:
+            field_view_mode = {col:True for col in cols}
+
+        self.fields["VIN"] = forms.CharField(initial=init_data["VIN"],
+                                             validators=[check_vin_exsitance],
+                                            disabled=field_view_mode["VIN"])
+        self.fields["Customer_id"] = forms.IntegerField(initial=init_data["Customer_id"],
+                                                         disabled=field_view_mode["Customer_id"])
+        self.fields["Start_date"] = forms.DateField(initial=init_data["Start_date"],
+                                                    disabled=field_view_mode["Start_date"])
+        self.fields["Labor_charges"] = forms.CharField(initial=init_data["Labor_charges"],
+                                                        disabled=field_view_mode["Labor_charges"])
+        self.fields["Total_cost"] = forms.CharField(initial=init_data["Total_cost"],
+                                                     disabled=field_view_mode["Total_cost"],
+                                                     required=False)
+        self.fields["Description"] = forms.CharField(initial=init_data["Description"],
+                                                    disabled=field_view_mode["Description"])
+        self.fields["Completion_date"] = forms.DateField(initial=init_data["Completion_date"],
+                                                          disabled=field_view_mode["Completion_date"],
+                                                          required=False)
+        self.fields["Odometer_reading"] = forms.CharField(initial=init_data["Odometer_reading"],
+                                                        disabled=field_view_mode["Odometer_reading"])
+        self.fields["Username"] = forms.CharField(initial=init_data["Username"],
+                                                disabled=field_view_mode["Username"])
+
+    def clean(self):
+        cleaned_data = super().clean()
+        if not cleaned_data.get('licence_nr') and not cleaned_data.get('TIN'):  # This will check for None or Empty
+            raise ValidationError({'licence_nr': 'One of licence_nr or TIN should have a value.'})
 
     def extract_data(self):
         data = self.data.dict()
-        vehicle_type_selected = self.vehicle_choices[int(data['vehicle_type'])][1]
 
-        return vehicle_type_selected
+        if len(data["licence_nr"])>0:
+            id = get_customer_id(data["licence_nr"], "licence_nr")
+            print("person id is used",id)
+
+        else:
+            id = get_customer_id(data["TIN"], "TIN")
+            print("business id is used",id)
+
+        row = (data["VIN"],data["sales_person_username"],id,data["sales_price"],data["sales_date"])
+
+        return row

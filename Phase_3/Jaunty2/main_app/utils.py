@@ -12,7 +12,38 @@ TODO:
 
 from typing import Tuple, List
 import pyodbc
+from datetime import datetime
 
+def is_repair_complete(repair_key_fields:dict)->bool:
+    """
+    :param repair_key_fields: {"VIN":vin,"Customer_id":Customer_id,"Start_date":Start_date}
+    :return: True/False indicating if a repair is complete
+    """
+    where_clause = " AND ".join([f"{k} = '{v}'" for k, v in repair_key_fields.items()])
+    query = "SELECT Completion_date FROM Repair WHERE " + where_clause
+    complete_date = run_query(query)[0]
+    if len(complete_date)>0:
+        complete_date = complete_date[0][0]
+    else:
+        complete_date = None
+
+    return complete_date not in [None,""]
+
+def repair_start_date_is_unique(vin:str,start_date:datetime)->bool:
+    """
+    :param vin:
+    :param start_date:
+    :return:
+    """
+    query = f"SELECT * FROM Repair WHERE VIN = '{vin}' AND Start_date = '{start_date}'"
+    results = run_query(query)[0]
+
+    return len(results) == 0
+
+def repair_starts_before_ends(Start_date: datetime,
+                              Completion_date: datetime) -> bool:
+
+    return Start_date <= Completion_date
 
 def get_customer_id(customer_unique_nr, customer_type):
     if customer_type == "licence_nr":
