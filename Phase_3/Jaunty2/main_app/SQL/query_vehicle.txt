@@ -1,9 +1,14 @@
-SELECT v.VIN,VehicleType.Vehicle_type,v.Year,v.Manufacturer_name,v.Model_name,V.Description, Color = ( SELECT DISTINCT STRING_AGG(c.Color,' | ') FROM Color c WHERE c.VIN=v.VIN),v.List_price
+SELECT v.VIN
+,VehicleType.Vehicle_type
+,v.Year,v.Manufacturer_name,v.Model_name,V.Description
+, color = ( SELECT DISTINCT STRING_AGG(c.Color,' | ') FROM Color c WHERE c.VIN=v.VIN)
+,v.List_price
 FROM Vehicle v
 LEFT JOIN (
-SELECT Car.VIN, 'Car' AS Vehicle_type FROM Car
+		SELECT Car.VIN, 'Car' AS Vehicle_type FROM Car
 UNION	SELECT SUV.VIN, 'SUV' AS Vehicle_type FROM SUV
 UNION	SELECT Truck.VIN, 'Truck' AS Vehicle_type FROM Truck
 UNION	SELECT Convertible.VIN, 'Convertible' AS Vehicle_type FROM Convertible
 UNION	SELECT VanMinivan.VIN, 'VanMinivan' AS Vehicle_type FROM VanMinivan
-) AS VehicleType ON v.VIN = vehicleType.VIN
+) AS VehicleType ON v.VIN= vehicleType.VIN
+

@@ -9,7 +9,8 @@ from .forms import (LoginForm,
                     FilterBy,
                     AddCustomer,
                     SellVehicle,
-                    AddVehicleForm)
+                    AddVehicleForm,
+                    SelectVehicleTypeForm)
 from .forms import AddRepair
 from .utils import run_query, get_search_vehicle_query, run_reports,insert_row,get_data_for_template_report
 from .utils import (run_query,
@@ -63,7 +64,7 @@ def home(request):
     else:
         form = QueryVehicleForm()
 
-    vehicle_count = run_query("SELECT COUNT(*) FROM Vehicle")[0][0][0]
+    vehicle_count = run_query("SELECT COUNT(*) FROM Vehicle v WHERE v.VIN NOT IN( SELECT s.VIN FROM Sale s)")[0][0][0]
 
     return render(request, 'mainlanding/home.html',
                   {'form': form,
@@ -78,28 +79,6 @@ def base(request):
     print("base")
     return render(request, 'mainlanding/base.html',{
                    'user':os.environ["USER_ROLE"]})
-
-
-# def add_vehicle(request):
-#     print("vehicle")
-#     VIN = "VIN"
-#     # if this is a POST request we need to process the form data
-#     if request.method == 'POST':
-#         # create a form instance and populate it with data from the request:
-#         form = AddVehicle(request.POST)
-#         # check whether it's valid:
-#         if form.is_valid():
-#             # process the data in form.cleaned_data as required
-#             VIN = AddVehicle().cleaned_data['VIN']
-#             # ...
-#             # redirect to a new URL:
-#             # return HttpResponseRedirect('/thanks/')
-#     # if a GET (or any other method) we'll create a blank form
-#     else:
-#         form = AddVehicle()
-#     # print("add_vehicle")
-#     return render(request, 'mainlanding/add_vehicle.html', {'form': form})
-
 
 def reports(request):
     data = []
@@ -201,7 +180,6 @@ def click(request):
     return render(request, 'mainlanding/clicked.html',
                   {'user':os.environ["USER_ROLE"]})
 
-
 def login(request):
     users = {"regular_user": "Regular User",
              "manager": "Manager",
@@ -223,31 +201,6 @@ def filter_vehicles(request):
     return render(request, 'mainlanding/filter.html',
                   {'form': form,
                    'user':os.environ["USER_ROLE"]})
-
-
-# def lookup_customer(request):
-#     view_inventory = False
-#     data = []
-#     header = []
-#
-#     form = LookupCustomer()
-#
-#     return render(request, 'mainlanding/lookup_customer.html',
-#                   {'form': form,
-#                    'data': data,
-#                    'header': header})
-
-# def add_customer(request):
-#     view_inventory = False
-#     data = []
-#     header = []
-#
-#     form = AddCustomer()
-#
-#     return render(request, 'mainlanding/add_customer.html',
-#                   {'form': form,
-#                    'data': data,
-#                    'header': header})
 
 def update_add_customer(request, ):
     home_status = "Setting the add customer template with individual or business."
@@ -280,7 +233,7 @@ def loggedin(request):
     else:
         form = LoginForm()
 
-    vehicle_count = run_query("SELECT COUNT(*) FROM Vehicle")[0][0][0]
+    vehicle_count = run_query("SELECT COUNT(*) FROM Vehicle v WHERE v.VIN NOT IN( SELECT s.VIN FROM Sale s)")[0][0][0]
 
     return render(request, 'mainlanding/home.html',
                   {'form': form,
@@ -290,86 +243,8 @@ def loggedin(request):
                    'vehicle_count':vehicle_count,
                    'header': header})
 
-def add_repair(request):
-    form = AddRepair()
-    status = ""
-    # message_class = "normal"
-    # data = None
-    # header = None
-    if request.method == 'POST':
-        form = AddRepair(request.POST)
-
-        if form.is_valid():
-
-            data = form.extract_data()
-
-            try:
-                query = gen_query_add_row(table_name="Repair", row=data)
-                insert_row(query, data)
-                status = 'Congratulations, the vehicle sold successfully!'
-                # message_class = "success"
-            except:
-                status = 'There was an issue selling the vehicle. Please contact IT.'
-                # message_class = "error"
-
-    return render(request, 'mainlanding/add_repair.html',
-                  {
-                      "form": form,
-                      "status": status,
-                  }
-                  )
-
-    #         query = add_repair(user_input)  # generate query
-    #         data = insert_row(query)
-    #         # data = insert_row(query, "user_input")
-    #         #data, header = run_query(query)  # run query
-    #         if len(data) == 0:
-    #             home_status = "No data available"
-    #         else:
-    #             home_status = "Results found and displayed below."
-    #     else:
-    #         home_status = "Inputs fields need to be corrected."
-    #
-    # else:
-    #     form = AddRepair()
-
-    # return render(request, 'mainlanding/add_repair.html',
-    #               {'form': form,
-    #                'data': data,
-    #               'user':os.environ["USER_ROLE"],
-    #                'header': header})
-    #
-
 def total_vehicles_available():
     pass
-
-def add_vehicle(request):
-    form = AddVehicleForm()
-    status = ""
-    message_class = "normal"
-
-    if request.method == 'POST':
-        form = AddVehicleForm(data=request.POST)
-
-        if form.is_valid():
-            row = form.extract_data()
-            try:
-                query = gen_query_add_row(table_name="Vehicle",row = row)
-                insert_row(query, row)
-                status = 'Congratulations, the vehicle sold successfully!'
-                message_class = "success"
-            except:
-                status = 'There was an issue selling the vehicle. Please contact IT.'
-                message_class = "error"
-
-    return render(request, 'mainlanding/add_vehicle.html',
-                  {
-                      "form": form,
-                      "status": status,
-                      "message_class":message_class,
-                      'user': os.environ["USER_ROLE"]
-                  }
-                  )
 
 def vehicle_details(request,vin):
     '''
@@ -402,46 +277,47 @@ def add_customer(request):
     # data = []
     # header = []
     form = AddCustomer()
-    # home_status = "Add New Customer."
-    status = " "
+    status = ""
+    message_class = "normal"
+    customer_type = ""
+    customer_status = {"status": status, "css_class": message_class}
+    customer_type_status = {"status": status, "css_class": message_class}
+
+
     # message_class = "normal"
 
     if request.method == 'POST':
         form = AddCustomer(request.POST)
 
         if form.is_valid():
-            row,row_type = form.extract_data()
-            print(row)
-            print(row_type)
+            row,row_type,customer_type = form.extract_data()
 
+            if len(row)!=0:
+                query = gen_query_add_row(table_name="Customer", row=row, skip_col_list=["Customer_id"])
+                status,css_class = insert_row(query, row)
+                customer_status = {"status": status, "css_class": css_class}
 
+                colnames = ["Phone_number","Email","Street_address","City","State","Postal_code"]
+                where_clause = " AND ".join([f"{colnames[i]} = '{row[i]}'" for i in range(len(row))])
+                query = "SELECT Customer_id FROM Customer WHERE "+where_clause
+                customer_id = run_query(query)[0][0][0]
+            if len(row_type)==3:
+                row_type.insert(1,customer_id)
+                query = gen_query_add_row(table_name="Person", row=row_type)
+                status,css_class= insert_row(query, row_type)
 
-            try:
-                if len(row)!=0:
-                    query = gen_query_add_row(table_name="Customer", row=row)
-                    insert_row(query, row)
+            else:
+                row_type.insert(1,customer_id)
+                query = gen_query_add_row(table_name="Business", row=row_type)
+                status,css_class = insert_row(query, row_type)
 
-                if len(row_type)==3:
-                    query = gen_query_add_row(table_name="Person", row=row_type)
-                    insert_row(query, row_type)
-                else:
-
-                    query = gen_query_add_row(table_name="Business", row=row_type)
-                    insert_row(query, row_type)
-                status = 'Customer added successfully!'
-
-
-
-
-
-            except:
-                status = 'There was an error adding new customer. Please try again!.'
-
+            customer_type_status = {"status": status, "css_class": css_class}
 
     return render(request, 'mainlanding/add_customer.html',
                   {'form': form,
-
-                   'status':status,
+                   'customer_type':customer_type,
+                   'customer_status':customer_status,
+                   'customer_type_status':customer_type_status,
                    'user':os.environ["USER_ROLE"],
                    })
 
@@ -473,7 +349,6 @@ def lookup_customer(request):
                    'header':header,
                    'user':os.environ["USER_ROLE"],
                    'header': header})
-
 
 def sell_vehicle(request,vin):
     query = f"SELECT Invoice_price FROM Vehicle WHERE VIN = '{vin}'"
@@ -509,3 +384,189 @@ def sell_vehicle(request,vin):
                       'user': os.environ["USER_ROLE"]
                   }
                   )
+
+def add_vehicle(request):
+    add_vehicle_form = AddVehicleForm()
+    vehicle_type_form = SelectVehicleTypeForm()
+    status = ""
+    message_class = "normal"
+    color = {"status": status, "css_class": message_class}
+    vehicle_type = {"status": status, "css_class": message_class}
+    vehicle = {"status": status, "css_class": message_class}
+    manu = {"status": status, "css_class": message_class}
+
+    if request.method == 'POST':
+        add_vehicle_form = AddVehicleForm(data=request.POST)
+
+        if add_vehicle_form.is_valid():
+
+            manufacturer_row,vehicle_row,car_type_dict,color_data = add_vehicle_form.extract_data()
+
+            print("Adding Manufacturer")
+            query = gen_query_add_row(table_name="Manufacturer", row=manufacturer_row)
+            status_manu,class_manu = insert_row(query, manufacturer_row)
+            manu = {"status":status_manu,"css_class":class_manu}
+
+            print("Adding Vehicle")
+            query = gen_query_add_row(table_name="Vehicle",row = vehicle_row,skip_col_list=["List_price"])
+            status_vehicle,class_vehicle = insert_row(query, vehicle_row)
+            vehicle = {"status": status_vehicle, "css_class": class_vehicle}
+
+            print("Adding Vehicle Type Data")
+            table = car_type_dict["type"]
+            row = car_type_dict["data"]
+            query = gen_query_add_row(table_name=table,row = row)
+            status_vehicle_type,class_vehicle_type = insert_row(query, row)
+            vehicle_type = {"status": status_vehicle_type, "css_class": class_vehicle_type}
+
+            print("Adding Colors")
+            for row in color_data:
+                query = gen_query_add_row(table_name="Color", row=row)
+                status_color,class_color = insert_row(query, row)
+                color = {"status": status_color, "css_class": class_color}
+
+
+    return render(request, 'mainlanding/add_vehicle.html',
+                  {   "color":color,
+                      "vehicle_type":vehicle_type,
+                      "vehicle":vehicle,
+                      "manu":manu,
+                      "vehicle_type_form": vehicle_type_form,
+                      "add_vehicle_form": add_vehicle_form,
+                      "status": status,
+                      "message_class":message_class,
+                      'user': os.environ["USER_ROLE"]
+                  }
+                  )
+
+def update_vehicle_type(request):
+
+    add_vehicle_form = AddVehicleForm()
+    vehicle_type_form = SelectVehicleTypeForm()
+
+    status = ""
+    message_class = "normal"
+    color = {"status": status, "css_class": message_class}
+    vehicle_type = {"status": status, "css_class": message_class}
+    vehicle = {"status": status, "css_class": message_class}
+    manu = {"status": status, "css_class": message_class}
+
+    if request.method == 'POST':
+        vehicle_type_form = SelectVehicleTypeForm(data=request.POST)
+
+        if vehicle_type_form.is_valid():
+            vehicle_type = vehicle_type_form.extract_data()
+            print("Updated Add Vehicle Form to vehicle type ", vehicle_type)
+            os.environ["VEHICLE_TYPE"] = vehicle_type
+
+            add_vehicle_form = AddVehicleForm()
+
+    return render(request, 'mainlanding/add_vehicle.html',
+                  {   "color":color,
+                      "vehicle_type":vehicle_type,
+                      "vehicle":vehicle,
+                      "manu":manu,
+                      "vehicle_type_form": vehicle_type_form,
+                      "add_vehicle_form": add_vehicle_form,
+                      "status": status,
+                      "message_class":message_class,
+                      'user': os.environ["USER_ROLE"]
+                  }
+                  )
+
+
+def repairs(request):
+    print("repairs")
+    return render(request,
+                  'mainlanding/repairs.html',
+                  {'user':os.environ["USER_ROLE"]})
+
+def add_repair(request):
+    data = None
+    header = None
+    if request.method == 'POST':
+        form = AddRepair(request.POST)
+
+        if form.is_valid():
+
+            user_input = form.extract_data()
+
+            query = add_repair(user_input)  # generate query
+            data = insert_row(query)
+            # data = insert_row(query, "user_input")
+            #data, header = run_query(query)  # run query
+            if len(data) == 0:
+                home_status = "No data available"
+            else:
+                home_status = "Results found and displayed below."
+        else:
+            home_status = "Inputs fields need to be corrected."
+
+    else:
+        form = AddRepair()
+
+    return render(request, 'mainlanding/add_repair.html',
+                  {'form': form,
+                   'data': data,
+                  'user':os.environ["USER_ROLE"],
+                   'header': header})
+
+def update_repair(request):
+    data = None
+    header = None
+    if request.method == 'POST':
+        form = AddRepair(request.POST)
+
+        if form.is_valid():
+
+            user_input = form.extract_data()
+
+            query = add_repair(user_input)  # generate query
+            data = insert_row(query)
+            # data = insert_row(query, "user_input")
+            #data, header = run_query(query)  # run query
+            if len(data) == 0:
+                home_status = "No data available"
+            else:
+                home_status = "Results found and displayed below."
+        else:
+            home_status = "Inputs fields need to be corrected."
+
+    else:
+        form = AddRepair()
+
+    return render(request, 'mainlanding/add_repair.html',
+                  {'form': form,
+                   'data': data,
+                  'user':os.environ["USER_ROLE"],
+                   'header': header})
+
+def add_part(request):
+    data = None
+    header = None
+    if request.method == 'POST':
+        form = AddRepair(request.POST)
+
+        if form.is_valid():
+
+            user_input = form.extract_data()
+
+            query = add_repair(user_input)  # generate query
+            data = insert_row(query)
+            # data = insert_row(query, "user_input")
+            #data, header = run_query(query)  # run query
+            if len(data) == 0:
+                home_status = "No data available"
+            else:
+                home_status = "Results found and displayed below."
+        else:
+            home_status = "Inputs fields need to be corrected."
+
+    else:
+        form = AddRepair()
+
+    return render(request, 'mainlanding/add_repair.html',
+                  {'form': form,
+                   'data': data,
+                  'user':os.environ["USER_ROLE"],
+                   'header': header})

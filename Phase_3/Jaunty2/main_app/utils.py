@@ -14,7 +14,7 @@ from typing import Tuple, List
 import pyodbc
 
 
-def get_customer_id(customer_unique_nr,customer_type):
+def get_customer_id(customer_unique_nr, customer_type):
     if customer_type == "licence_nr":
         from_clause = "Person"
         where_clause = "Driver_license"
@@ -26,9 +26,10 @@ def get_customer_id(customer_unique_nr,customer_type):
 
     if customer_unique_nr == "":
         return ""
+
     else:
         query = f"SELECT Customer_id FROM {from_clause} WHERE {where_clause} = '{customer_unique_nr}'"
-        data,_ = run_query(query)  # run query
+        data, _ = run_query(query)  # run query
 
         if len(data) == 0:
             return ""
@@ -36,7 +37,34 @@ def get_customer_id(customer_unique_nr,customer_type):
             return data[0][0]
 
 
-def find_customer(Driver_license,Tin):
+def check_if_instance_exists(table_name: str,
+                             select_cols: List[str],
+                             where_clause: List[tuple]) -> bool:
+    """
+
+    :param table_name:
+    :param select_cols:
+    :param where_clause: ex [(col1,val1),(col2,val2)...]
+    :return:
+    """
+    if len(select_cols) == 0:
+        columns = " * "
+    else:
+        columns = ", ".join(select_cols)
+
+    where = " AND ".join([pair[0] + " = " + f"'{str(pair[1])}'" for pair in where_clause])
+
+    query = f"SELECT " + columns + " FROM " + table_name + " WHERE " + where
+
+    results, _ = run_query(query)
+
+    if len(results) > 0:
+        return True
+    else:
+        return False
+
+
+def find_customer(Driver_license, Tin):
     data = []
     header = []
 
@@ -60,31 +88,48 @@ def find_customer(Driver_license,Tin):
             status = "Business found in the customer registry. Details below."
     else:
         status = "Logic not captured by the code."
-
     return data, header, status
 
+
 def compose_pyodbc_connection():
-    connection_string = 'Driver={SQL Server};Server=%s;Database=CS6400;Trusted_Connection=yes;' % ( SERVER )
-    if os.getenv("PYODBC_AUTH")=="True":
+    connection_string = 'Driver={SQL Server};Server=%s;Database=CS6400;Trusted_Connection=yes;' % (SERVER)
+    if os.getenv("PYODBC_AUTH") == "True":
         usr = os.getenv("PYODBC_USER")
         pw = os.getenv("PYODBC_PW")
-        connection_string+='uid=%s;pwd=%s;'%(usr,pw)
+        connection_string += 'uid=%s;pwd=%s;' % (usr, pw)
 
     return connection_string
 
-def gen_query_add_row(table_name:str,row:tuple)->str:
+
+def gen_query_add_row(table_name: str, row: tuple, skip_col_list: list = []) -> str:
     colQuery = f"SELECT COLUMN_NAME FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME='{table_name}';"
 
-    colnames,_ = run_query(colQuery)
+    colnames, _ = run_query(colQuery)
 
-    colnames = ','.join([col[0] for col in colnames])
+    colnames = [col[0] for col in colnames]
+
+    if len(skip_col_list) > 0:
+        print("skipping cols")
+        new_cols = []
+        for col in colnames:
+            if col in skip_col_list:
+                print(col)
+                continue
+            new_cols.append(col)
+
+        colnames = new_cols
+
+    colnames = ','.join(colnames)
+
     row_len = len(row)
 
-    row =",".join(["?" for i in range(row_len)])
+    row = ",".join(["?" for i in range(row_len)])
     query = f"INSERT INTO {table_name}({colnames}) VALUES ({row}) "
+    print("Insert row query: ", query)
     return query
 
-def get_search_vehicle_query(user_input:dict)->str:
+#by defaul showing available vehicle (unsold)
+def get_search_vehicle_query(user_input: dict) -> str:
     '''
     :param user_input: dictionary of form {col1:value,col2:value}
     :return:
@@ -94,12 +139,21 @@ def get_search_vehicle_query(user_input:dict)->str:
 
     query = get_query_from_file("query_vehicle.txt")
 
-    vehicle_fields = ["Manufacturer_name","Year","VIN","Vehicle_type","Model_name"]
+    vehicle_fields = ["Manufacturer_name", "Year", "VIN", "Vehicle_type", "Model_name"]
 
-    where_clause = []
+    where_clause = [" WHERE v.VIN NOT IN ( SELECT s.VIN FROM Sale s) "]
     for key, val in user_input.items():
 
         if (val != "all") and (val != ""):
+            if val == "sold":  # for sold unsold filter
+                where_clause = []
+                where_clause.append(f"WHERE v.VIN IN ( SELECT s.VIN FROM Sale s) ")
+            elif val == "unsold":
+                where_clause = []
+                where_clause.append(f"WHERE v.VIN NOT IN ( SELECT s.VIN FROM Sale s) ")
+            else:
+                where_clause = []
+
             if key in vehicle_fields:
                 if key == "VIN":
                     where_clause.append(f"(v.VIN='{val}')")
@@ -111,13 +165,14 @@ def get_search_vehicle_query(user_input:dict)->str:
             if key == "max_price":
                 where_clause.append(f"(List_price < {user_input['max_price']})")
 
-            if val == "sold": # for sold unsold filter
-                where_clause.append(f"(v.VIN IN ( SELECT s.VIN FROM Sale s))")
-            elif val == "unsold":
-                where_clause.append(f"(v.VIN NOT IN ( SELECT s.VIN FROM Sale s))")
+            # if val == "sold":  # for sold unsold filter
+            #     where_clause.append(f"(v.VIN IN ( SELECT s.VIN FROM Sale s))")
+            # elif val == "unsold":
+            #    where_clause.append(f"(v.VIN NOT IN ( SELECT s.VIN FROM Sale s))")
 
             if key == "Color":
-                where_clause.append(f"((SELECT DISTINCT STRING_AGG(c.Color,' | ') FROM Color c WHERE c.VIN=v.VIN) LIKE '%{val}%')")
+                where_clause.append(
+                    f"((SELECT DISTINCT STRING_AGG(c.Color,' | ') FROM Color c WHERE c.VIN=v.VIN) LIKE '%{val}%')")
 
             if key == "keywords":
                 keywords = user_input["keywords"].split(',')
@@ -125,12 +180,15 @@ def get_search_vehicle_query(user_input:dict)->str:
                     where_clause.append(f"(Description LIKE '%{word}%')")
 
     if len(where_clause) > 0:
-        query += " WHERE "
+        #query += " WHERE v.VIN NOT IN ( SELECT s.VIN FROM Sale s) AND"
         query += " AND ".join(where_clause)
     query += " ORDER BY VIN ASC"
+    print(where_clause)
+    print(query)
     return query
 
-def cleanup_null_cols(data:tuple,columns:list):
+
+def cleanup_null_cols(data: tuple, columns: list):
     """
     Function will clean up a row that has null values and remove columsn with null values
 
@@ -157,11 +215,12 @@ def cleanup_null_cols(data:tuple,columns:list):
             new_row.append(row[col_index])
         new_data.append(tuple(new_row))
 
-    assert len(new_data[0])==len(cols)
+    assert len(new_data[0]) == len(cols)
 
-    return new_data,cols
+    return new_data, cols
 
-def run_query(query:str,return_results:bool = True)->List[tuple]:
+
+def run_query(query: str, return_results: bool = True) -> List[tuple]:
     '''
     :param query:
     :return:
@@ -169,10 +228,11 @@ def run_query(query:str,return_results:bool = True)->List[tuple]:
     connection_str = compose_pyodbc_connection()
     conn = pyodbc.connect(connection_str)
     cursor = conn.cursor()
+
     cursor.execute(query)
 
-    results:List[tuple] = None
-    header:List[str] = None
+    results: List[tuple] = None
+    header: List[str] = None
     if return_results:
         results = cursor.fetchall()
         header = [column[0] for column in cursor.description]
@@ -180,22 +240,29 @@ def run_query(query:str,return_results:bool = True)->List[tuple]:
     cursor.close()
     return results, header
 
-def insert_row(query:str,row):
+
+def insert_row(query: str, row):
     """
     :param query: string type for example 'SELECT * FROM ...'
     :param row: is a tuple of values, for example, (val1,val2, val3...)
     :return:
     """
+    try:
+        connection_str = compose_pyodbc_connection()
+        conn = pyodbc.connect(connection_str)
+        cursor = conn.cursor()
+        cursor.execute(query, row)
+        conn.commit()
+        cursor.close()
+        status = "Row Added"
+        message_class = "success"
+    except Exception as e:
+        print(e)
+        status = "Issue adding a new row, could be that it already exists."
+        message_class = "error"
 
-    connection_str = compose_pyodbc_connection()
-    conn = pyodbc.connect(connection_str)
+    return status, message_class
 
-    cursor = conn.cursor()
-    cursor.execute(query,row)
-    conn.commit()
-    cursor.close()
-
-    return
 
 def get_colors():
     query = "SELECT DISTINCT Color FROM Color"
@@ -204,15 +271,17 @@ def get_colors():
     colors.append((len(colors), "all"))
     return colors
 
-def get_query_from_file(file_name:str)->str:
+
+def get_query_from_file(file_name: str) -> str:
     cwd = os.getcwd()
-    sql_path = os.path.join(cwd,"main_app\SQL")
-    file_path = os.path.join(sql_path,file_name)
+    sql_path = os.path.join(cwd, "main_app\SQL")
+    file_path = os.path.join(sql_path, file_name)
 
     with open(file_path, 'r') as file:
-        query_string = file.read().replace('\n', ' ').replace('\t',' ')
-        query_string = query_string.replace("  "," ").replace("   "," ")
+        query_string = file.read().replace('\n', ' ').replace('\t', ' ')
+        query_string = query_string.replace("  ", " ").replace("   ", " ")
     return query_string
+
 
 def get_manufacturer_names():
     query = "select DISTINCT Manufacturer_name from Manufacturer"
@@ -221,37 +290,41 @@ def get_manufacturer_names():
     manufacturers.append((len(manufacturers), "all"))
     return manufacturers
 
-# def add_repair(user_input):
-#     #query = get_query_from_file("add_repair.txt")
-#
-#     repair_fields = ["VIN", "Customer Id", "Start_date", "Labor_charges", "Total_cost", "Description",
-#                      "Completion_date", "Odometer_reading", "Username"]
-    # row_tuple = []
-    # for key, val in user_input.items():
-    #
-    #     if (val != "all") and (val != ""):
-    #         if key in repair_fields:
-    #             if key == "VIN":
-    #                 row_tuple.append(f"(v.VIN='{val}')")
-    #                 # row_tuple.append(val)
-    #                 print(row_tuple)
-    #
-    #             if key == "Customer Id":
-    #                 row_tuple.append(val)
-    #
-    #             if key == "Start_date":
-    #                 row_tuple.append({val})
-    #
-    #             if key == "Description":
-    #                 row_tuple.append({val})
 
+def add_repair(user_input):
+    # query = get_query_from_file("add_repair.txt")
 
-    #
-    # query = gen_query_add_row("Repair", tuple(row_tuple))
-    # print(query)
-    # return query
+    repair_fields = ["VIN", "Customer Id", "Start_date", "Labor_charges", "Total_cost", "Description",
+                     "Completion_date", "Odometer_reading", "Username"]
+    row_tuple = []
+    for key, val in user_input.items():
 
+        if (val != "all") and (val != ""):
+            if key in repair_fields:
+                if key == "VIN":
+                    row_tuple.append(f"(v.VIN='{val}')")
 
+            if key == "Customer Id":
+                where_clause.append(f"(List_price > {user_input['min_price']})")
+            if key == "max_price":
+                where_clause.append(f"(List_price < {user_input['max_price']})")
+
+            if val == "sold":  # for sold unsold filter
+                where_clause.append(f"(v.VIN IN ( SELECT s.VIN FROM Sale s))")
+            elif val == "unsold":
+                where_clause.append(f"(v.VIN NOT IN ( SELECT s.VIN FROM Sale s))")
+
+            if key == "Color":
+                where_clause.append(
+                    f"((SELECT DISTINCT STRING_AGG(c.Color,' | ') FROM Color c WHERE c.VIN=v.VIN) LIKE '%{val}%')")
+
+            if key == "keywords":
+                keywords = user_input["keywords"].split(',')
+                for word in keywords:
+                    where_clause.append(f"(Description LIKE '%{word}%')")
+
+    query = gen_query_add_row("Repair", user_input)
+    return query
 
 
 def run_reports(user_input):
@@ -262,14 +335,12 @@ def run_reports(user_input):
                      "Average Time in Inventory", "Part Statistics", "Below Cost Sales",
                      "Repairs By Manufacturer/Type/Model", "Monthly Sales"]
 
-
     for key, val in user_input.items():
 
         # if (val != "all") and (val != ""):
         if val in report_fields:
             if val == "Sales by Color":
                 query = get_query_from_file("sale_by_color.txt")
-                # print(query)
                 return query
 
             if val == "Sales by Type":
@@ -464,38 +535,40 @@ def get_data_for_template_repairby_manutypemodel(manufacturer_name:str,query_typ
 def get_detailed_vehicle_query(vin: str):
     user_role = os.environ["USER_ROLE"]
 
-    if user_role not in ["manager","owner"]:
+    if user_role not in ["manager", "owner"]:
         query_addition = f" AND v.VIN = '{vin}';"
     else:
         query_addition = f" v.VIN = '{vin}';"
 
-
-    if user_role in ["manager","owner"]:
+    if user_role in ["manager", "owner"]:
         query = get_query_from_file("vehicle_detailed_manager.txt")
 
     elif user_role == "inventory_clerk":
         print("getting query for ivc")
         query = get_query_from_file("vehicle_detailed_inventory_clerk.txt")
 
-    elif user_role in ["sales_person","service_writer"]:
+    elif user_role in ["sales_person", "service_writer"]:
         query = get_query_from_file("vehicle_detailed_worker.txt")
 
     else:
         query = get_query_from_file("vehicle_detailed_regular.txt")
 
-    return query+query_addition
+    return query + query_addition
 
-def get_sales_query(vin:str):
+
+def get_sales_query(vin: str):
     query_addition = f" WHERE s.VIN IS NOT NULL AND s.VIN = '{vin}';"
     query = get_query_from_file("vehicle_detailed_sales.txt")
-    return query+query_addition
+    return query + query_addition
 
-def get_repair_query(vin:str):
+
+def get_repair_query(vin: str):
     query_addition = f" WHERE r.VIN IS NOT NULL AND r.VIN = '{vin}';"
     query = get_query_from_file("vehicle_detailed_repair.txt")
-    return query+query_addition
+    return query + query_addition
 
-def get_data_for_template(vin:str,query_type:str):
+
+def get_data_for_template(vin: str, query_type: str):
     # for repairs details
     print("getting data for: ", query_type)
 
@@ -516,6 +589,6 @@ def get_data_for_template(vin:str,query_type:str):
         status = "The vehicle is no longer in inventory because it was sold."
     else:
         cols = []
-        status = "No results found for: "+query_type
+        status = "No results found for: " + query_type
 
-    return {'header':cols, 'data':data, "status":status}
+    return {'header': cols, 'data': data, "status": status}
