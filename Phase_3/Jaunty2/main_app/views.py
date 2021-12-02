@@ -117,7 +117,7 @@ def reports(request):
                    'user': os.environ["USER_ROLE"],
                    'header': header}
 
-    print(context)
+
     return render(request, 'mainlanding/reports.html',
                   context)
 
