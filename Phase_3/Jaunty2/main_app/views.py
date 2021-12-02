@@ -16,7 +16,7 @@ from .forms import (LoginForm,
                     AddRepairForm,
                     ViewEditRepairForm)
 from .forms import AddRepair
-from .utils import run_query, get_search_vehicle_query, run_reports,insert_row
+from .utils import run_query, get_search_vehicle_query, run_reports,insert_row,get_data_for_template_report
 from .utils import (run_query,
                     gen_query_add_row,
                     get_search_vehicle_query,
@@ -28,6 +28,7 @@ from .utils import (run_query,
                     get_data_for_template,
                     find_customer)
 from .runtime_constants import USER_ROLE
+from .utils import get_data_for_template_customerdrill,get_data_for_template_repairby_manutypemodel
 
 USER_ROLE = os.environ["USER_ROLE"]
 #home_form_state = None #instantiate global variable
@@ -113,6 +114,71 @@ def reports(request):
                    'user': os.environ["USER_ROLE"],
                    'header': header})
 
+
+def monthlysales_drilldown(request,year,month):
+
+    drill_data = {'header':[], 'data':[()]}
+
+    if os.environ["USER_ROLE"] in ["manager", "owner"]:
+        drill_data = get_data_for_template_report(year, month)
+
+    context = {"user": os.environ["USER_ROLE"],
+               "year": year,
+               "month": month,
+               'drill_data': drill_data,
+               "full_users":["manager", "owner"],
+
+               }
+
+    return render(request,
+                  'mainlanding/monthly_sales_details.html',
+                  context)
+
+def gross_customer_income_drilldown(request,Customer_id):
+    sales_data = {'header': [], 'data': [()], "status": ""}
+    repair_data = {'header': [], 'data': [()], "status": ""}
+
+
+    if os.environ["USER_ROLE"] in ["manager", "owner"]:
+        sales_data = get_data_for_template_customerdrill(Customer_id, query_type="sales")
+        repair_data = get_data_for_template_customerdrill(Customer_id, query_type="repair")
+
+    context = {"user": os.environ["USER_ROLE"],
+               "Customer_id": Customer_id,
+               "full_users": ["manager", "owner"],
+               'sales_data': sales_data,
+               'repair_data': repair_data}
+
+    return render(request,
+                  'mainlanding/gross_customer_details.html',
+                  context)
+def repairsby_manu_type_model_drill(request,manufacturer_name):
+    vehicle_data = {'header': [], 'data': [()], "status": ""}
+    model_data = {'header': [], 'data': [()], "status": ""}
+
+    if os.environ["USER_ROLE"] in ["manager", "owner"]:
+        vehicle_data = get_data_for_template_repairby_manutypemodel(manufacturer_name, query_type="vehicle")
+        model_data = get_data_for_template_repairby_manutypemodel(manufacturer_name, query_type="model")
+
+    context = {"user": os.environ["USER_ROLE"],
+               "manufacturer_name": manufacturer_name,
+               "full_users": ["manager", "owner"],
+               'vehicle_data': vehicle_data,
+               'model_data': model_data}
+
+    return render(request,
+                  'mainlanding/repairby_manutypemodel_details.html',
+                  context)
+
+
+
+def repairs(request):
+    print("repairs")
+    return render(request, 'mainlanding/repairs.html',
+                  {
+                   'user':os.environ["USER_ROLE"]})
+
+
 def click(request):
     print("clicked")
     return render(request, 'mainlanding/clicked.html',
@@ -155,6 +221,7 @@ def update_add_customer(request, ):
                   {'form': form,
                   'user':os.environ["USER_ROLE"],
                    'customer':customer_type})
+
 
 def loggedin(request):
     data = None
