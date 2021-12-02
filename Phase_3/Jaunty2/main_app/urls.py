@@ -25,5 +25,6 @@ urlpatterns = [
     path('add_repair/', views.add_repair, name="add_repair"),
     path('sell_vehicle/<str:vin>/', views.sell_vehicle, name="sell_vehicle"),
     path('add_vehicle/', views.add_vehicle, name="add_vehicle"),
+    path('monthlysales_drilldown/<int:year>/<int:month>/', views.monthlysales_drilldown, name="monthlysales_drilldown")
 
 ]

@@ -11,7 +11,7 @@ from .forms import (LoginForm,
                     SellVehicle,
                     AddVehicleForm)
 from .forms import AddRepair
-from .utils import run_query, get_search_vehicle_query, run_reports,insert_row
+from .utils import run_query, get_search_vehicle_query, run_reports,insert_row,get_data_for_template_report
 from .utils import (run_query,
                     gen_query_add_row,
                     get_search_vehicle_query,
@@ -23,6 +23,7 @@ from .utils import (run_query,
                     get_data_for_template,
                     find_customer)
 from .runtime_constants import USER_ROLE
+from .utils import get_data_for_template_customerdrill,get_data_for_template_repairby_manutypemodel
 
 USER_ROLE = os.environ["USER_ROLE"]
 #home_form_state = None #instantiate global variable
@@ -131,6 +132,62 @@ def reports(request):
                    'header': header})
 
 
+def monthlysales_drilldown(request,year,month):
+
+    drill_data = {'header':[], 'data':[()]}
+
+    if os.environ["USER_ROLE"] in ["manager", "owner"]:
+        drill_data = get_data_for_template_report(year, month)
+
+    context = {"user": os.environ["USER_ROLE"],
+               "year": year,
+               "month": month,
+               'drill_data': drill_data,
+               "full_users":["manager", "owner"],
+
+               }
+
+    return render(request,
+                  'mainlanding/monthly_sales_details.html',
+                  context)
+
+def gross_customer_income_drilldown(request,Customer_id):
+    sales_data = {'header': [], 'data': [()], "status": ""}
+    repair_data = {'header': [], 'data': [()], "status": ""}
+
+
+    if os.environ["USER_ROLE"] in ["manager", "owner"]:
+        sales_data = get_data_for_template_customerdrill(Customer_id, query_type="sales")
+        repair_data = get_data_for_template_customerdrill(Customer_id, query_type="repair")
+
+    context = {"user": os.environ["USER_ROLE"],
+               "Customer_id": Customer_id,
+               "full_users": ["manager", "owner"],
+               'sales_data': sales_data,
+               'repair_data': repair_data}
+
+    return render(request,
+                  'mainlanding/gross_customer_details.html',
+                  context)
+def repairsby_manu_type_model_drill(request,manufacturer_name):
+    vehicle_data = {'header': [], 'data': [()], "status": ""}
+    model_data = {'header': [], 'data': [()], "status": ""}
+
+    if os.environ["USER_ROLE"] in ["manager", "owner"]:
+        vehicle_data = get_data_for_template_repairby_manutypemodel(manufacturer_name, query_type="vehicle")
+        model_data = get_data_for_template_repairby_manutypemodel(manufacturer_name, query_type="model")
+
+    context = {"user": os.environ["USER_ROLE"],
+               "manufacturer_name": manufacturer_name,
+               "full_users": ["manager", "owner"],
+               'vehicle_data': vehicle_data,
+               'model_data': model_data}
+
+    return render(request,
+                  'mainlanding/repairby_manutypemodel_details.html',
+                  context)
+
+
 
 def repairs(request):
     print("repairs")
@@ -232,55 +289,11 @@ def loggedin(request):
                    'user':os.environ["USER_ROLE"],
                    'vehicle_count':vehicle_count,
                    'header': header})
-def blah():
-    # data = []
-    # header = []
-    form = AddCustomer()
-    # home_status = "Add New Customer."
-    status = " "
-    # message_class = "normal"
-
-    if request.method == 'POST':
-        form = AddCustomer(request.POST)
-
-        if form.is_valid():
-            row, row_type = form.extract_data()
-            print(row)
-            print(row_type)
-
-            try:
-                if len(row) != 0:
-                    query = gen_query_add_row(table_name="Customer", row=row)
-                    insert_row(query, row)
-
-                if len(row_type) == 3:
-                    query = gen_query_add_row(table_name="Person", row=row_type)
-                    insert_row(query, row_type)
-                else:
-
-                    query = gen_query_add_row(table_name="Business", row=row_type)
-                    insert_row(query, row_type)
-                status = 'Customer added successfully!'
-
-
-
-
-
-            except:
-                status = 'There was an error adding new customer. Please try again!.'
-
-    return render(request, 'mainlanding/add_customer.html',
-                  {'form': form,
-
-                   'status': status,
-                   'user': os.environ["USER_ROLE"],
-                   })
-
 
 def add_repair(request):
     form = AddRepair()
     status = ""
-    message_class = "normal"
+    # message_class = "normal"
     # data = None
     # header = None
     if request.method == 'POST':
@@ -289,22 +302,20 @@ def add_repair(request):
         if form.is_valid():
 
             data = form.extract_data()
-            print(data)
+
             try:
                 query = gen_query_add_row(table_name="Repair", row=data)
                 insert_row(query, data)
                 status = 'Congratulations, the vehicle sold successfully!'
-                message_class = "success"
+                # message_class = "success"
             except:
                 status = 'There was an issue selling the vehicle. Please contact IT.'
-                message_class = "error"
+                # message_class = "error"
 
     return render(request, 'mainlanding/add_repair.html',
                   {
                       "form": form,
                       "status": status,
-                      "message_class": message_class,
-                      'user': os.environ["USER_ROLE"]
                   }
                   )
 
