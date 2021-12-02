@@ -11,9 +11,7 @@ urlpatterns = [
     path('', views.home, name="home"),
     path('home/', views.home, name="home"),
     path('reports/', views.reports, name="reports"),
-    path('repairs/', views.repairs, name="repairs"),
     path('login/', views.login, name="login"),
-    path('loggedin/', views.loggedin, name="loggedin"),
     path('loggedin/', views.loggedin, name="loggedin"),
     path('lookup_customer/', views.lookup_customer, name="lookup_customer"),
     path('filter_vehicles/', views.filter_vehicles, name="filter_vehicles"),
@@ -24,7 +22,10 @@ urlpatterns = [
     path('vehicle_details/<str:vin>/', views.vehicle_details, name="vehicle_details"),
     path('add_repair/', views.add_repair, name="add_repair"),
     path('sell_vehicle/<str:vin>/', views.sell_vehicle, name="sell_vehicle"),
-    path('add_vehicle/', views.add_vehicle, name="add_vehicle"),
     path('update_vehicle_type/', views.update_vehicle_type, name="update_vehicle_type"),
-
+    path('repairs/', views.repairs, name="repairs"),
+    path('add_vehicle/', views.add_vehicle, name="add_vehicle"),
+    path('add_repair/', views.add_repair, name="add_repair"),
+    path('update_repair/', views.update_repair, name="update_repair"),
+    path('add_part/', views.add_part, name="add_part")
 ]

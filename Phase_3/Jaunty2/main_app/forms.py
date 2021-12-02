@@ -476,3 +476,72 @@ class SelectVehicleTypeForm(forms.Form):
         vehicle_type_selected = self.vehicle_choices[int(data['vehicle_type'])][1]
 
         return vehicle_type_selected
+
+class AddPartForm(forms.Form):
+    '''
+   TODO: right now color chices are hard coded
+   we want to retrieve these with a query pass as parameter
+   TODO: Vehicle type, manufacturer name, and model year, keyword is a drop down
+   '''
+
+    vehicle_type = os.getenv("VEHICLE_TYPE","Car")
+    print(vehicle_type)
+    vehicle_choices = [(0, "Car"), (1, "Convertible"), (2, "SUV"), (3, "Truck"), (4, "VanMinivan")]
+
+    initial_choice = [car[0] for car in vehicle_choices if car[1] == "Car"][0]
+
+    vehicle_type = forms.ChoiceField(choices=vehicle_choices,
+                                                    label="Vehicle Type",
+                                                    initial=initial_choice)
+
+    def extract_data(self):
+        data = self.data.dict()
+        vehicle_type_selected = self.vehicle_choices[int(data['vehicle_type'])][1]
+
+        return vehicle_type_selected
+
+class AddRepairForm(forms.Form):
+    '''
+   TODO: right now color chices are hard coded
+   we want to retrieve these with a query pass as parameter
+   TODO: Vehicle type, manufacturer name, and model year, keyword is a drop down
+   '''
+
+    vehicle_type = os.getenv("VEHICLE_TYPE","Car")
+    print(vehicle_type)
+    vehicle_choices = [(0, "Car"), (1, "Convertible"), (2, "SUV"), (3, "Truck"), (4, "VanMinivan")]
+
+    initial_choice = [car[0] for car in vehicle_choices if car[1] == "Car"][0]
+
+    vehicle_type = forms.ChoiceField(choices=vehicle_choices,
+                                                    label="Vehicle Type",
+                                                    initial=initial_choice)
+
+    def extract_data(self):
+        data = self.data.dict()
+        vehicle_type_selected = self.vehicle_choices[int(data['vehicle_type'])][1]
+
+        return vehicle_type_selected
+
+class ViewEditRepairForm(forms.Form):
+    '''
+   TODO: right now color chices are hard coded
+   we want to retrieve these with a query pass as parameter
+   TODO: Vehicle type, manufacturer name, and model year, keyword is a drop down
+   '''
+
+    vehicle_type = os.getenv("VEHICLE_TYPE","Car")
+    print(vehicle_type)
+    vehicle_choices = [(0, "Car"), (1, "Convertible"), (2, "SUV"), (3, "Truck"), (4, "VanMinivan")]
+
+    initial_choice = [car[0] for car in vehicle_choices if car[1] == "Car"][0]
+
+    vehicle_type = forms.ChoiceField(choices=vehicle_choices,
+                                                    label="Vehicle Type",
+                                                    initial=initial_choice)
+
+    def extract_data(self):
+        data = self.data.dict()
+        vehicle_type_selected = self.vehicle_choices[int(data['vehicle_type'])][1]
+
+        return vehicle_type_selected

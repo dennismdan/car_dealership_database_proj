@@ -28,7 +28,6 @@ from .runtime_constants import USER_ROLE
 USER_ROLE = os.environ["USER_ROLE"]
 #home_form_state = None #instantiate global variable
 
-
 '''
 TODO: 
 list all business constraint 
@@ -73,33 +72,10 @@ def home(request):
                    'vehicle_count':vehicle_count,
                    'header': header})
 
-
 def base(request):
     print("base")
     return render(request, 'mainlanding/base.html',{
                    'user':os.environ["USER_ROLE"]})
-
-
-# def add_vehicle(request):
-#     print("vehicle")
-#     VIN = "VIN"
-#     # if this is a POST request we need to process the form data
-#     if request.method == 'POST':
-#         # create a form instance and populate it with data from the request:
-#         form = AddVehicle(request.POST)
-#         # check whether it's valid:
-#         if form.is_valid():
-#             # process the data in form.cleaned_data as required
-#             VIN = AddVehicle().cleaned_data['VIN']
-#             # ...
-#             # redirect to a new URL:
-#             # return HttpResponseRedirect('/thanks/')
-#     # if a GET (or any other method) we'll create a blank form
-#     else:
-#         form = AddVehicle()
-#     # print("add_vehicle")
-#     return render(request, 'mainlanding/add_vehicle.html', {'form': form})
-
 
 def reports(request):
     data = []
@@ -131,20 +107,10 @@ def reports(request):
                    'user': os.environ["USER_ROLE"],
                    'header': header})
 
-
-
-def repairs(request):
-    print("repairs")
-    return render(request, 'mainlanding/repairs.html',
-                  {
-                   'user':os.environ["USER_ROLE"]})
-
-
 def click(request):
     print("clicked")
     return render(request, 'mainlanding/clicked.html',
                   {'user':os.environ["USER_ROLE"]})
-
 
 def login(request):
     users = {"regular_user": "Regular User",
@@ -168,31 +134,6 @@ def filter_vehicles(request):
                   {'form': form,
                    'user':os.environ["USER_ROLE"]})
 
-
-# def lookup_customer(request):
-#     view_inventory = False
-#     data = []
-#     header = []
-#
-#     form = LookupCustomer()
-#
-#     return render(request, 'mainlanding/lookup_customer.html',
-#                   {'form': form,
-#                    'data': data,
-#                    'header': header})
-
-# def add_customer(request):
-#     view_inventory = False
-#     data = []
-#     header = []
-#
-#     form = AddCustomer()
-#
-#     return render(request, 'mainlanding/add_customer.html',
-#                   {'form': form,
-#                    'data': data,
-#                    'header': header})
-
 def update_add_customer(request, ):
     home_status = "Setting the add customer template with individual or business."
     print(home_status)
@@ -208,7 +149,6 @@ def update_add_customer(request, ):
                   {'form': form,
                   'user':os.environ["USER_ROLE"],
                    'customer':customer_type})
-
 
 def loggedin(request):
     data = None
@@ -233,37 +173,6 @@ def loggedin(request):
                    'user':os.environ["USER_ROLE"],
                    'vehicle_count':vehicle_count,
                    'header': header})
-
-def add_repair(request):
-    data = None
-    header = None
-    if request.method == 'POST':
-        form = AddRepair(request.POST)
-
-        if form.is_valid():
-
-            user_input = form.extract_data()
-            print(user_input)
-            query = add_repair(user_input)  # generate query
-            data = insert_row(query)
-            # data = insert_row(query, "user_input")
-            #data, header = run_query(query)  # run query
-            if len(data) == 0:
-                home_status = "No data available"
-            else:
-                home_status = "Results found and displayed below."
-        else:
-            home_status = "Inputs fields need to be corrected."
-
-    else:
-        form = AddRepair()
-
-    return render(request, 'mainlanding/add_repair.html',
-                  {'form': form,
-                   'data': data,
-                  'user':os.environ["USER_ROLE"],
-                   'header': header})
-
 
 def total_vehicles_available():
     pass
@@ -370,7 +279,6 @@ def lookup_customer(request):
                    'header':header,
                    'user':os.environ["USER_ROLE"],
                    'header': header})
-
 
 def sell_vehicle(request,vin):
     query = f"SELECT Invoice_price FROM Vehicle WHERE VIN = '{vin}'"
@@ -496,3 +404,99 @@ def update_vehicle_type(request):
                   }
                   )
 
+
+def repairs(request):
+    print("repairs")
+    return render(request,
+                  'mainlanding/repairs.html',
+                  {'user':os.environ["USER_ROLE"]})
+
+def add_repair(request):
+    data = None
+    header = None
+    if request.method == 'POST':
+        form = AddRepair(request.POST)
+
+        if form.is_valid():
+
+            user_input = form.extract_data()
+            print(user_input)
+            query = add_repair(user_input)  # generate query
+            data = insert_row(query)
+            # data = insert_row(query, "user_input")
+            #data, header = run_query(query)  # run query
+            if len(data) == 0:
+                home_status = "No data available"
+            else:
+                home_status = "Results found and displayed below."
+        else:
+            home_status = "Inputs fields need to be corrected."
+
+    else:
+        form = AddRepair()
+
+    return render(request, 'mainlanding/add_repair.html',
+                  {'form': form,
+                   'data': data,
+                  'user':os.environ["USER_ROLE"],
+                   'header': header})
+
+def update_repair(request):
+    data = None
+    header = None
+    if request.method == 'POST':
+        form = AddRepair(request.POST)
+
+        if form.is_valid():
+
+            user_input = form.extract_data()
+            print(user_input)
+            query = add_repair(user_input)  # generate query
+            data = insert_row(query)
+            # data = insert_row(query, "user_input")
+            #data, header = run_query(query)  # run query
+            if len(data) == 0:
+                home_status = "No data available"
+            else:
+                home_status = "Results found and displayed below."
+        else:
+            home_status = "Inputs fields need to be corrected."
+
+    else:
+        form = AddRepair()
+
+    return render(request, 'mainlanding/add_repair.html',
+                  {'form': form,
+                   'data': data,
+                  'user':os.environ["USER_ROLE"],
+                   'header': header})
+
+def add_part(request):
+    data = None
+    header = None
+    if request.method == 'POST':
+        form = AddRepair(request.POST)
+
+        if form.is_valid():
+
+            user_input = form.extract_data()
+            print(user_input)
+            query = add_repair(user_input)  # generate query
+            data = insert_row(query)
+            # data = insert_row(query, "user_input")
+            #data, header = run_query(query)  # run query
+            if len(data) == 0:
+                home_status = "No data available"
+            else:
+                home_status = "Results found and displayed below."
+        else:
+            home_status = "Inputs fields need to be corrected."
+
+    else:
+        form = AddRepair()
+
+    return render(request, 'mainlanding/add_repair.html',
+                  {'form': form,
+                   'data': data,
+                  'user':os.environ["USER_ROLE"],
+                   'header': header})
