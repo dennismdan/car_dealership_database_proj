@@ -1,6 +1,12 @@
+DECLARE   @maxdate30 DATETIME
+DECLARE  @maxdate365 DATETIME
+
+SET @maxdate30    =  (SELECT MAX(Sale_date) - 30 from Sale)
+SET @maxdate365  =   (SELECT MAX(Sale_date) - 365 from Sale)
+
 SELECT (Manufacturer_name)
-,count(CASE WHEN Sale.Sale_date > GETDATE() -30 THEN Sale.Sale_date ELSE NULL END) LastMonth
-,count(CASE WHEN Sale.Sale_date >GETDATE() -365 THEN Sale.Sale_date ELSE NULL END) LastYear
+,count(CASE WHEN Sale.Sale_date > @maxdate30 THEN Sale.Sale_date ELSE NULL END) LastMonth
+,count(CASE WHEN Sale.Sale_date > @maxdate365 THEN Sale.Sale_date ELSE NULL END) LastYear
 ,count(Vehicle.VIN) Alltime
 FROM Vehicle LEFT OUTER JOIN Sale ON Vehicle.VIN = Sale.VIN
 WHERE Sale.Sale_price IS NOT NULL

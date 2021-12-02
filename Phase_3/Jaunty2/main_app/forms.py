@@ -128,7 +128,7 @@ class QueryVehicleForm(forms.Form):
    '''
     color_choices = get_colors()
     vehicle_choices = [(0,"Car"),(1,"Convertible"),(2,"SUV"),(3,"Truck"),(4,"VanMinivan"),(5,"all")]
-    sold_unsold_options = [(0, "all"), (1, "sold"), (2, "unsold")]
+    sold_unsold_options = [(0, "all vehicles"), (1, "sold"), (2, "unsold")]
     manufacturer_names = get_manufacturer_names()
     year_choices = [(r, r) for r in range(1920, date.today().year + 1)]
     year_choices.append((0,0))

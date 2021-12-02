@@ -28,6 +28,7 @@ from .runtime_constants import USER_ROLE
 USER_ROLE = os.environ["USER_ROLE"]
 #home_form_state = None #instantiate global variable
 
+
 '''
 TODO: 
 list all business constraint 
@@ -62,7 +63,7 @@ def home(request):
     else:
         form = QueryVehicleForm()
 
-    vehicle_count = run_query("SELECT COUNT(*) FROM Vehicle")[0][0][0]
+    vehicle_count = run_query("SELECT COUNT(*) FROM Vehicle v WHERE v.VIN NOT IN( SELECT s.VIN FROM Sale s)")[0][0][0]
 
     return render(request, 'mainlanding/home.html',
                   {'form': form,
@@ -71,6 +72,7 @@ def home(request):
                    'user':os.environ["USER_ROLE"],
                    'vehicle_count':vehicle_count,
                    'header': header})
+
 
 def base(request):
     print("base")
@@ -164,7 +166,7 @@ def loggedin(request):
     else:
         form = LoginForm()
 
-    vehicle_count = run_query("SELECT COUNT(*) FROM Vehicle")[0][0][0]
+    vehicle_count = run_query("SELECT COUNT(*) FROM Vehicle v WHERE v.VIN NOT IN( SELECT s.VIN FROM Sale s)")[0][0][0]
 
     return render(request, 'mainlanding/home.html',
                   {'form': form,
