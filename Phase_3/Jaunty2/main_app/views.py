@@ -63,7 +63,7 @@ def home(request):
     else:
         form = QueryVehicleForm()
 
-    vehicle_count = run_query("SELECT COUNT(*) FROM Vehicle")[0][0][0]
+    vehicle_count = run_query("SELECT COUNT(*) FROM Vehicle v WHERE v.VIN NOT IN( SELECT s.VIN FROM Sale s)")[0][0][0]
 
     return render(request, 'mainlanding/home.html',
                   {'form': form,
@@ -224,7 +224,7 @@ def loggedin(request):
     else:
         form = LoginForm()
 
-    vehicle_count = run_query("SELECT COUNT(*) FROM Vehicle")[0][0][0]
+    vehicle_count = run_query("SELECT COUNT(*) FROM Vehicle v WHERE v.VIN NOT IN( SELECT s.VIN FROM Sale s)")[0][0][0]
 
     return render(request, 'mainlanding/home.html',
                   {'form': form,
