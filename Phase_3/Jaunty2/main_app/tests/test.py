@@ -15,7 +15,8 @@ from ..utils import (gen_query_add_row,
                      is_repair_complete,
                      repair_start_date_is_unique,
                      repair_starts_before_ends,
-
+                     gen_query_update_row,
+                     update_row,
                      )
 
 '''
@@ -23,6 +24,30 @@ https://coderedirect.com/questions/192135/pyodbc-insert-into-sql
 https://thepythonguru.com/inserting-rows/
 '''
 timezone_est = timezone('EST')
+
+def test_gen_query_update_row():
+    table = "Repair"
+    update_fields = {"id":5}
+    where_fields = {"id":5}
+    query = gen_query_update_row(table,update_fields,where_fields)
+    print(query)
+    assert query == "UPDATE Repair SET id = '5' WHERE id = '5';"
+    expected_query = "UPDATE Repair SET Total_cost = '50.00' WHERE VIN = 'VIN02' AND Customer_id = '1' AND Start_date = '2020-12-13';"
+    table = "Repair"
+    update_fields = {"Total_cost":"50.00"}
+    where_fields = {"VIN":'VIN02',"Customer_id":1,"Start_date":'2020-12-13'}
+    query = gen_query_update_row(table,update_fields,where_fields)
+    print(query)
+    assert query == expected_query
+
+def test_update_row():
+    val = 190.0
+    query = f"UPDATE Repair SET Total_cost = '{val}' WHERE VIN = 'VIN02' AND Customer_id = '1' AND Start_date = '2020-12-13';"
+    update_row(query)
+    tot_costs = run_query("SELECT Total_cost FROM Repair WHERE VIN = 'VIN02' AND Customer_id = '1' AND Start_date = '2020-12-13';")
+    tot_costs = tot_costs[0][0][0]
+    print(tot_costs)
+    assert tot_costs == val
 
 def test_is_repair_complete():
     data = {"VIN": "00AIVKIDO01487633", "Customer_id": 128, "Start_date": '2020-12-13 00:00:00.000'}
@@ -76,6 +101,10 @@ def test_repair_starts_before_ends():
     end_date = datetime.strptime('2020-12-10 00:00:00.000', '%Y-%m-%d %H:%M:%S.%f')
     result = repair_starts_before_ends(start_date,end_date)
     assert not result
+    start_date = datetime.strptime('2020-12-13 00:00:00.000', '%Y-%m-%d %H:%M:%S.%f')
+    end_date = ""
+    result = repair_starts_before_ends(start_date,end_date)
+    assert result
 
 def test_check_if_instance_exists():
     result = check_if_instance_exists("test_table_02",["Phone_number"],[("id",1)])
@@ -96,6 +125,20 @@ def test_gen_query_add_row():
     query = gen_query_add_row(table,row, skip_col_list=["id"])
     expected = "INSERT INTO test_table_02(Phone_number,Email) VALUES (?,?) "
     assert query == expected
+
+def test_run_query_manual():
+    query = "SELECT Total_cost FROM Repair WHERE VIN = '00AIVKIDO01487633' AND Start_date = '2020-12-13'"
+    data, cols = run_query(query)
+    print("\n Data")
+    print(data)
+    print(data[0][0])
+    assert None is data[0][0]
+
+    query = "SELECT Total_cost FROM Repair WHERE VIN = '00AIVKIDO01487633234' AND Start_date = '2020-12-13'"
+    data, cols = run_query(query)
+    print("\n Data")
+
+    assert not data
 
 
 def test_run_query():
