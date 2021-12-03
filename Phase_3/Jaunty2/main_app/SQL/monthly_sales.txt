@@ -2,9 +2,9 @@ SELECT
 YEAR(s.Sale_date) SaleYear
 ,MONTH(S.SALE_DATE) SaleMonth
 ,COUNT(v.VIN) Total_Number_of_Vehicles_Sold
-,SUM(s.sale_price) Total_Sales_Income
-,SUM(s.Sale_price - v.Invoice_price) total_net_income
-,(100*SUM(Sale_price)/SUM(Invoice_price)) AS Profit_ratio
+,CAST(SUM(s.sale_price) AS numeric(16,2)) Total_Sales_Income
+,CAST(SUM(s.Sale_price - v.Invoice_price) AS numeric(16,2)) total_net_income
+,CAST((100*SUM(Sale_price)/SUM(Invoice_price)) AS numeric(16,2)) AS Profit_ratio
 ,CASE
     WHEN (100*SUM(Sale_price)/SUM(Invoice_price)) >= 125 THEN 'Green'
     WHEN (100*SUM(Sale_price)/SUM(Invoice_price)) <= 110 THEN 'Yellow'

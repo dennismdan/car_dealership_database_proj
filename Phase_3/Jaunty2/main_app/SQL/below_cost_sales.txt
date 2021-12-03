@@ -1,8 +1,8 @@
 SELECT
 FORMAT (s.Sale_date, 'MM-dd-yyyy') Sale_Date
-,v.Invoice_price
+,CAST(v.Invoice_price AS numeric(16,2)) AS Invoice_Price
 ,s.Sale_price
-,(100*(Sale_price)/(Invoice_price)) AS Profit_ratio
+,CAST((100*(Sale_price)/(Invoice_price)) AS numeric(16,2) ) AS Profit_ratio
 ,CASE
     WHEN (100*(Sale_price)/(Invoice_price)) <= 95 THEN 'Red'
  END AS Background
