@@ -255,9 +255,9 @@ def get_search_vehicle_query(user_input: dict) -> str:
             if val == "sold":  # for sold unsold filter
                 where_clause = []
                 where_clause.append(f"WHERE v.VIN IN ( SELECT s.VIN FROM Sale s) ")
-            elif val == "unsold":
-                where_clause = []
-                where_clause.append(f"WHERE v.VIN NOT IN ( SELECT s.VIN FROM Sale s) ")
+            elif val == "all vehicles":
+                where_clause=[]
+                where_clause.append(f" 'dummy'='dummy' ")
             else:
                 where_clause = [" WHERE v.VIN NOT IN ( SELECT s.VIN FROM Sale s) "]
 
@@ -594,7 +594,7 @@ def repair_by_manutypemodel_one_query(manufacturer_name):
             WHERE Manufacturer_name =  '{manufacturer_name}') AS repairs  \
             ON Repairs.Vehicle_type = UnionVt.VT \
             GROUP BY UnionVt.VT \
-            ORDER BY Count_Repairs ASC"
+            ORDER BY Count_Repairs DESC"
 
     return query
 
