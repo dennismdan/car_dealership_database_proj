@@ -469,30 +469,46 @@ def gross_customer_drilldown_repair_query(Customer_id):
 
 def get_data_for_template_customerdrill(Customer_id:str,query_type:str):
     # for repairs details
-    print("getting data for: ", query_type)
+    # print("getting data for: ", query_type)
 
     if query_type == "sales":
         query = gross_customer_drilldown_sales_query(Customer_id)
-    if query_type == "repair":
+    elif query_type == "repair":
         query = gross_customer_drilldown_repair_query(Customer_id)
 
     data, cols = run_query(query)
 
-    # if len(data) > 0:
-    #     data, cols = cleanup_null_cols(data, cols)
-    #     status = ""
-    # elif (len(data) == 0) and (query_type == "vehicle"):
-    #     cols = []
-    #     status = "The vehicle is no longer in inventory because it was sold."
-    # else:
-    #     cols = []
-    #     status = "No results found for: "+query_type
-
     return {'header':cols, 'data':data}
 
 
-def repair_by_manutypemodel_vehicle_drill_query(manufacturer_name):
-    query = f" SELECT VT,SUM(Labor_charges) AS All_labor_Costs, SUM(Total_cost) AS Total_Repair_cost, \
+def repair_by_manutypemodel_two_query(manufacturer_name):
+    query = f"SELECT Vehicle_type,Model_name,SUM(Labor_charges) AS All_labor_Costs, \
+            SUM(Total_cost) AS Total_Repair_cost, \
+            (SUM(Labor_charges) - SUM(Total_cost)) AS All_Parts_Costs, \
+            COUNT(Start_date) AS Count_Repairs \
+            from(select 'Car' as VT  \
+            UNION select 'SUV' as VT \
+            UNION select 'Truck' as VT \
+            UNION select 'Convertible' as VT \
+            UNION select 'VanMinivan' as VT) as UnionVt \
+            JOIN(SELECT v.VIN, VehicleType.Vehicle_type, v.Model_name, r.Labor_charges, r.Total_cost, r.Start_date \
+            FROM \
+            Vehicle v \
+            LEFT JOIN(SELECT Car.VIN, 'Car' AS Vehicle_type FROM Car  \
+            UNION SELECT SUV.VIN, 'SUV' AS Vehicle_type FROM SUV \
+            UNION SELECT Truck.VIN, 'Truck' AS Vehicle_type FROM Truck \
+            UNION SELECT Convertible.VIN, 'Convertible' AS Vehicle_type FROM Convertible \
+            UNION SELECT VanMinivan.VIN, 'VanMinivan' AS Vehicle_type FROM VanMinivan \
+            ) AS VehicleType ON v.VIN = vehicleType.VIN  \
+            JOIN Repair r ON V.VIN = r.VIN \
+            WHERE Manufacturer_name = '{manufacturer_name}' \
+            ) AS repairs ON repairs.Vehicle_type = UnionVt.VT \
+            GROUP BY UnionVt.VT, Vehicle_type, Model_name \
+            ORDER BY Vehicle_type,Count_Repairs DESC,Model_name"
+    return query
+
+def repair_by_manutypemodel_one_query(manufacturer_name):
+    query = f" SELECT VT AS [Vehicle Type],SUM(Labor_charges) AS All_labor_Costs, SUM(Total_cost) AS Total_Repair_cost, \
             (SUM(Total_cost) - SUM(Labor_charges)) AS All_Parts_Costs,COUNT(Start_date) AS Count_Repairs \
             from (select 'Car' as VT \
                   UNION select 'SUV' as VT \
@@ -514,53 +530,16 @@ def repair_by_manutypemodel_vehicle_drill_query(manufacturer_name):
 
     return query
 
-def repair_by_manutypemodel_model_drill_query(manufacturer_name):
-    query = f"SELECT Model_name,SUM(Labor_charges) AS All_labor_Costs, SUM(Total_cost) AS Total_Repair_cost, \
-            (SUM(Labor_charges) - SUM(Total_cost)) AS All_Parts_Costs, COUNT(Start_date) AS Count_Repairs \
-            from (select 'Car' as VT \
-            UNION select 'SUV' as VT \
-            UNION select 'Truck' as VT \
-            UNION select 'Convertible' as VT \
-            UNION select 'VanMinivan' as VT) as UnionVt \
-            JOIN (SELECT v.VIN,VehicleType.Vehicle_type,v.Model_name,r.Labor_charges,r.Total_cost,r.Start_date \
-            FROM Vehicle v \
-            LEFT JOIN (SELECT Car.VIN, 'Car' AS Vehicle_type FROM Car \
-            UNION	SELECT SUV.VIN, 'SUV' AS Vehicle_type FROM SUV \
-            UNION	SELECT Truck.VIN, 'Truck' AS Vehicle_type FROM Truck \
-            UNION	SELECT Convertible.VIN, 'Convertible' AS Vehicle_type FROM Convertible \
-            UNION	SELECT VanMinivan.VIN, 'VanMinivan' AS Vehicle_type FROM VanMinivan) AS VehicleType  \
-            ON v.VIN= vehicleType.VIN \
-            JOIN Repair r ON V.VIN=r.VIN \
-            WHERE Manufacturer_name =  '{manufacturer_name}' \
-            AND VehicleType.Vehicle_type = '$VehicleType') AS repairs ON repairs.Vehicle_type = UnionVt.VT \
-            GROUP BY UnionVt.VT,Model_name \
-            ORDER BY Count_Repairs ASC"
 
-    return query
-
-def get_data_for_template_repairby_manutypemodel(manufacturer_name:str,query_type:str):
-    # for repairs details
-    print("getting data for: ", query_type)
-
-
-    if query_type == "vehicle":
-        query = repair_by_manutypemodel_vehicle_drill_query(manufacturer_name)
-    if query_type == "model":
-        query = repair_by_manutypemodel_model_drill_query(manufacturer_name)
-
+def get_data_for_template_repairby_manutypemodel(manufacturer_name: str,query_type: str):
+    if query_type == "one":
+        query = repair_by_manutypemodel_one_query(manufacturer_name)
+    elif query_type == "two":
+        query = repair_by_manutypemodel_two_query(manufacturer_name)
     data, cols = run_query(query)
 
-    # if len(data) > 0:
-    #     data, cols = cleanup_null_cols(data, cols)
-    #     status = ""
-    # elif (len(data) == 0) and (query_type == "vehicle"):
-    #     cols = []
-    #     status = "The vehicle is no longer in inventory because it was sold."
-    # else:
-    #     cols = []
-    #     status = "No results found for: "+query_type
+    return {'header': cols, 'data': data}
 
-    return {'header':cols, 'data':data}
 
 def get_detailed_vehicle_query(vin: str):
     user_role = os.environ["USER_ROLE"]

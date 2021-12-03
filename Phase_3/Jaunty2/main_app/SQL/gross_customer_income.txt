@@ -1,5 +1,5 @@
 SELECT TOP 15
-CP.CustomerName,CASE
+c.Customer_id,CP.CustomerName,CASE
   WHEN MIN(s.Sale_date) IS NULL AND MIN(r.Start_date) IS NULL THEN NULL
   WHEN MIN(s.Sale_date) IS NULL AND MIN(r.Start_date) IS NOT NULL THEN MIN(r.Start_date)
   WHEN MIN(s.Sale_date) IS NOT NULL AND MIN(r.Start_date) IS NULL THEN MIN(s.Sale_date)

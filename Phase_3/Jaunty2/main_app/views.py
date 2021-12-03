@@ -141,10 +141,9 @@ def monthlysales_drilldown(request,year,month):
                   'mainlanding/monthly_sales_details.html',
                   context)
 
-def gross_customer_income_drilldown(request,CustomerName):
+def gross_customer_income_drilldown(request,Customer_id):
     sales_data = {'header': [], 'data': [()], "status": ""}
     repair_data = {'header': [], 'data': [()], "status": ""}
-
 
     if os.environ["USER_ROLE"] in ["manager", "owner"]:
         sales_data = get_data_for_template_customerdrill(Customer_id, query_type="sales")
@@ -160,19 +159,22 @@ def gross_customer_income_drilldown(request,CustomerName):
                   'mainlanding/gross_customer_details.html',
                   context)
 
-def repairsby_manu_type_model_drill(request,manufacturer_name):
-    vehicle_data = {'header': [], 'data': [()], "status": ""}
-    model_data = {'header': [], 'data': [()], "status": ""}
 
-    if os.environ["USER_ROLE"] in ["manager", "owner"]:
-        vehicle_data = get_data_for_template_repairby_manutypemodel(manufacturer_name, query_type="vehicle")
-        model_data = get_data_for_template_repairby_manutypemodel(manufacturer_name, query_type="model")
+def repairsby_manu_type_model_drill(request,manufacturer_name):
+    one_data = {'header':[], 'data':[()], "status":""}
+    two_data = {'header':[], 'data':[()], "status":""}
+
+
+    if os.environ["USER_ROLE"] in ["manager","owner"]:
+        one_data = get_data_for_template_repairby_manutypemodel(manufacturer_name,query_type="one")
+        two_data = get_data_for_template_repairby_manutypemodel(manufacturer_name,query_type="two")
 
     context = {"user": os.environ["USER_ROLE"],
                "manufacturer_name": manufacturer_name,
-               "full_users": ["manager", "owner"],
-               'vehicle_data': vehicle_data,
-               'model_data': model_data}
+               "full_users":["manager","owner"],
+               'one_data': one_data,
+               'two_data': two_data}
+
 
     return render(request,
                   'mainlanding/repairby_manutypemodel_details.html',

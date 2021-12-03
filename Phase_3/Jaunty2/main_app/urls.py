@@ -28,7 +28,7 @@ urlpatterns = [
     path('add_repair/', views.add_repair, name="add_repair"),
     path('edit_repair/', views.edit_repair, name="edit_repair"),
     path('add_part/', views.add_part, name="add_part"),
-    path('gross_customer_income_drilldown/<str:CustomerName>/',
+    path('gross_customer_income_drilldown/<int:Customer_id>/',
          views.gross_customer_income_drilldown,
          name="gross_customer_income_drilldown"),
     path('repairsby_manu_type_model_drill/<str:manufacturer_name>/',
