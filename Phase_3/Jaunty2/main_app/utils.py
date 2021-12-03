@@ -10,9 +10,64 @@ TODO:
 
 '''
 
-from typing import Tuple, List
+from typing import Tuple, List, Dict
 import pyodbc
 from datetime import datetime
+
+def gen_query_update_row(table_name: str,
+                         update_fields: dict,
+                         where_fields: dict ) -> str:
+    set_clause = ", ".join([f"{key} = '{val}'" for key,val in update_fields.items()])
+    where_clause = " AND ".join([f"{key} = '{val}'" for key, val in where_fields.items()])
+
+    query = f"UPDATE {table_name} SET {set_clause} WHERE {where_clause};"
+    print("Update row query: ", query)
+    return query
+
+def update_row(query: str):
+    """
+    :param query: string type for example 'UPDATE Table SET col=val ...'
+    :return:
+    """
+    try:
+        connection_str = compose_pyodbc_connection()
+        conn = pyodbc.connect(connection_str)
+        cursor = conn.cursor()
+        cursor.execute(query)
+        conn.commit()
+        cursor.close()
+        status = "Updated row successfully!"
+        message_class = "success"
+    except Exception as e:
+        print(e)
+        status = "Issue when updating row."
+        message_class = "error"
+
+    return status, message_class
+
+
+def stage_repair_data(row_dict, edit_allowed ):
+    query = get_query_with_condition(table_name="Repair",
+                                     select_cols=[],
+                                     where_clause=row_dict)
+    results, cols = run_query(query)
+    if results:
+        results = results[0]
+        data = {cols[i]:results[i] for i in range(len(cols))}
+        status = "Found repair"
+        css_class = "success"
+    else:
+        data = {cols[i]: "" for i in range(len(cols))}
+        status = "Did not find any repairs. \n"\
+                 "Please add a new repair."
+        css_class = "error"
+
+    if edit_allowed and results:
+        edit_cols = ["Completion_date", "Total_cost"]
+    else:
+        edit_cols = []
+
+    return data, edit_cols, status,css_class
 
 def is_repair_complete(repair_key_fields:dict)->bool:
     """
@@ -42,8 +97,11 @@ def repair_start_date_is_unique(vin:str,start_date:datetime)->bool:
 
 def repair_starts_before_ends(Start_date: datetime,
                               Completion_date: datetime) -> bool:
-
-    return Start_date <= Completion_date
+    if Completion_date in [None, ""]:
+        result = True
+    else:
+        result = Start_date <= Completion_date
+    return result
 
 def get_customer_id(customer_unique_nr, customer_type):
     if customer_type == "licence_nr":
@@ -93,6 +151,26 @@ def check_if_instance_exists(table_name: str,
         return True
     else:
         return False
+
+def get_query_with_condition(table_name: str,
+                             select_cols: List[str],
+                             where_clause: dict) -> str:
+    """
+    :param table_name:
+    :param select_cols:
+    :param where_clause: ex [(col1,val1),(col2,val2)...]
+    :return:
+    """
+    if len(select_cols) == 0:
+        columns = " * "
+    else:
+        columns = ", ".join(select_cols)
+
+    where = " AND ".join([f"{k} = '{v}'" for k, v in where_clause.items()])
+
+    query = f"SELECT " + columns + " FROM " + table_name + " WHERE " + where
+
+    return query
 
 
 def find_customer(Driver_license, Tin):
@@ -159,7 +237,7 @@ def gen_query_add_row(table_name: str, row: tuple, skip_col_list: list = []) -> 
     print("Insert row query: ", query)
     return query
 
-#by defaul showing available vehicle (unsold)
+
 def get_search_vehicle_query(user_input: dict) -> str:
     '''
     :param user_input: dictionary of form {col1:value,col2:value}
@@ -172,7 +250,8 @@ def get_search_vehicle_query(user_input: dict) -> str:
 
     vehicle_fields = ["Manufacturer_name", "Year", "VIN", "Vehicle_type", "Model_name"]
 
-    where_clause = [" WHERE v.VIN NOT IN ( SELECT s.VIN FROM Sale s) "]
+
+
     for key, val in user_input.items():
 
         if (val != "all") and (val != ""):
@@ -183,7 +262,7 @@ def get_search_vehicle_query(user_input: dict) -> str:
                 where_clause = []
                 where_clause.append(f"WHERE v.VIN NOT IN ( SELECT s.VIN FROM Sale s) ")
             else:
-                where_clause = []
+                where_clause = [" WHERE v.VIN NOT IN ( SELECT s.VIN FROM Sale s) "]
 
             if key in vehicle_fields:
                 if key == "VIN":
@@ -196,11 +275,6 @@ def get_search_vehicle_query(user_input: dict) -> str:
             if key == "max_price":
                 where_clause.append(f"(List_price < {user_input['max_price']})")
 
-            # if val == "sold":  # for sold unsold filter
-            #     where_clause.append(f"(v.VIN IN ( SELECT s.VIN FROM Sale s))")
-            # elif val == "unsold":
-            #    where_clause.append(f"(v.VIN NOT IN ( SELECT s.VIN FROM Sale s))")
-
             if key == "Color":
                 where_clause.append(
                     f"((SELECT DISTINCT STRING_AGG(c.Color,' | ') FROM Color c WHERE c.VIN=v.VIN) LIKE '%{val}%')")
@@ -211,11 +285,8 @@ def get_search_vehicle_query(user_input: dict) -> str:
                     where_clause.append(f"(Description LIKE '%{word}%')")
 
     if len(where_clause) > 0:
-        #query += " WHERE v.VIN NOT IN ( SELECT s.VIN FROM Sale s) AND"
         query += " AND ".join(where_clause)
     query += " ORDER BY VIN ASC"
-    print(where_clause)
-    print(query)
     return query
 
 
