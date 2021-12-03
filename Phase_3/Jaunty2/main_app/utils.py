@@ -2,13 +2,6 @@ from .runtime_constants import SERVER
 import getpass
 import os
 
-'''
-TODO:
-1. Update the generate_query function to handle SELCET, DELETE, UPDATE, INSERT
-2. Create a folder with all report or long queries in text files
-3. Create a function that reads the queries from text files and returns string
-
-'''
 
 from typing import Tuple, List, Dict
 import pyodbc
