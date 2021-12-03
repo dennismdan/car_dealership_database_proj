@@ -313,9 +313,10 @@ def get_search_vehicle_query(user_input: dict) -> str:
                     f"((SELECT DISTINCT STRING_AGG(c.Color,' | ') FROM Color c WHERE c.VIN=v.VIN) LIKE '%{val}%')")
 
             if key == "keywords":
-                keywords = user_input["keywords"].split(',')
-                for word in keywords:
-                    where_clause.append(f"(Description LIKE '%{word}%')")
+                where_clause.append(f"(Description LIKE '%{user_input['keywords']}%' OR manufacturer_name LIKE '%{user_input['keywords']}%' OR year LIKE '%{user_input['keywords']}%' OR model_name LIKE '%{user_input['keywords']}%')")
+                # keywords = user_input["keywords"].split(',')
+                # for word in keywords:
+                #     where_clause.append(f"(Description LIKE '%{word}%')")
 
 
     if len(where_clause) > 0:
