@@ -1,9 +1,9 @@
 SELECT
 m.Manufacturer_name
 ,COUNT(r.Start_date) Repairs
-,SUM(p.Quantity * p.Price) AS PartsCost
-,SUM(r.Labor_charges) LaborCost
-,SUM(r.Total_cost) TotalRepairCost
+,CAST(SUM(p.Quantity * p.Price) AS numeric(16,2)) AS PartsCost
+,CAST(SUM(r.Labor_charges) AS numeric(16,2)) LaborCost
+,CAST(SUM(r.Total_cost) AS numeric(16,2)) TotalRepairCost
 FROM Manufacturer m
 LEFT JOIN Vehicle v ON m.Manufacturer_name = v.Manufacturer_name
 LEFT JOIN Repair r ON v.VIN = r.VIN

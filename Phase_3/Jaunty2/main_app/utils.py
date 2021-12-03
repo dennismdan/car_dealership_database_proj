@@ -287,9 +287,9 @@ def get_search_vehicle_query(user_input: dict) -> str:
             if val == "sold":  # for sold unsold filter
                 where_clause = []
                 where_clause.append(f"WHERE v.VIN IN ( SELECT s.VIN FROM Sale s) ")
-            elif val == "unsold":
-                where_clause = []
-                where_clause.append(f"WHERE v.VIN NOT IN ( SELECT s.VIN FROM Sale s) ")
+            elif val == "all vehicles":
+                where_clause=[]
+                where_clause.append(f" 'dummy'='dummy' ")
             else:
                 where_clause = [" WHERE v.VIN NOT IN ( SELECT s.VIN FROM Sale s) "]
 
@@ -506,7 +506,6 @@ def run_reports(user_input):
                 query = get_query_from_file("monthly_sales.txt")
                 return query
 
-
 def get_monthly_sales_drilldown_query(year, month):
 
     query = f"SELECT TOP 1  \
@@ -514,7 +513,7 @@ def get_monthly_sales_drilldown_query(year, month):
            COUNT(s.Username) NumberVehiclesSold, \
            YEAR(s.Sale_date) AS SaleYear \
            ,MONTH(s.Sale_date) AS SaleYear \
-           ,SUM(s.Sale_price) TotalSales \
+           ,CAST(SUM(s.Sale_price) AS numeric (16,2)) TotalSales \
            FROM Sale s \
            LEFT JOIN EmployeeUser eu ON s.Username = eu.Username \
            WHERE YEAR(s.Sale_date) = {year} AND MONTH(s.Sale_date) = {month} \
@@ -534,7 +533,7 @@ def get_data_for_template_report(year,month):
 
 def gross_customer_drilldown_sales_query(Customer_id):
     query = f"SELECT CP.CustomerName,s.Sale_date,\
-            s.Sale_price,s.VIN,v.Year,v.Manufacturer_name,v.Model_name, \
+            CAST(s.Sale_price AS numeric(16,2))AS Sale_price,s.VIN,v.Year,v.Manufacturer_name,v.Model_name, \
             eu.First_name + ' ' + eu.Last_name AS SalesPersonName \
             FROM Customer c \
             LEFT JOIN (SELECT p.Customer_id, (p.First_name + ' ' + p.Last_name)as CustomerName FROM Person p \
@@ -552,8 +551,8 @@ def gross_customer_drilldown_sales_query(Customer_id):
 
 def gross_customer_drilldown_repair_query(Customer_id):
     query = f"SELECT \
-            CP.CustomerName, r.Start_date, r.Completion_date, r.VIN, r.Odometer_reading, r.Labor_charges, \
-            r.Total_cost, eu.First_name + ' ' + eu.Last_name AS SalesPersonName \
+            CP.CustomerName, r.Start_date, r.Completion_date, r.VIN, r.Odometer_reading, CAST(r.Labor_charges AS numeric(16,2)) AS Labor_Charges, \
+            CAST(r.Total_cost AS numeric(16,2)) AS Total_cost, eu.First_name + ' ' + eu.Last_name AS SalesPersonName \
             FROM Customer c LEFT JOIN(SELECT p.Customer_id, (p.First_name + ' ' + p.Last_name)as CustomerName \
             FROM Person p  \
             UNION  \
@@ -582,9 +581,9 @@ def get_data_for_template_customerdrill(Customer_id:str,query_type:str):
 
 
 def repair_by_manutypemodel_two_query(manufacturer_name):
-    query = f"SELECT Vehicle_type,Model_name,SUM(Labor_charges) AS All_labor_Costs, \
-            SUM(Total_cost) AS Total_Repair_cost, \
-            (SUM(Labor_charges) - SUM(Total_cost)) AS All_Parts_Costs, \
+    query = f"SELECT Vehicle_type,Model_name,CAST(SUM(Labor_charges) AS numeric(16,2) ) AS All_labor_Costs, \
+            CAST(SUM(Total_cost) AS numeric(16,2)) AS Total_Repair_cost, \
+            CAST((SUM(Total_cost) - SUM(Labor_charges)) as numeric(16,2)) AS All_Parts_Costs, \
             COUNT(Start_date) AS Count_Repairs \
             from(select 'Car' as VT  \
             UNION select 'SUV' as VT \
@@ -608,8 +607,8 @@ def repair_by_manutypemodel_two_query(manufacturer_name):
     return query
 
 def repair_by_manutypemodel_one_query(manufacturer_name):
-    query = f" SELECT VT AS [Vehicle Type],SUM(Labor_charges) AS All_labor_Costs, SUM(Total_cost) AS Total_Repair_cost, \
-            (SUM(Total_cost) - SUM(Labor_charges)) AS All_Parts_Costs,COUNT(Start_date) AS Count_Repairs \
+    query = f" SELECT VT AS [Vehicle Type],CAST(SUM(Labor_charges) AS numeric (16,2)) AS All_labor_Costs, CAST(SUM(Total_cost) AS numeric (16,2)) AS Total_Repair_cost, \
+            CAST((SUM(Total_cost) - SUM(Labor_charges)) as numeric(16,2)) AS All_Parts_Costs,COUNT(Start_date) AS Count_Repairs \
             from (select 'Car' as VT \
                   UNION select 'SUV' as VT \
                   UNION select 'Truck' as VT \
@@ -626,7 +625,7 @@ def repair_by_manutypemodel_one_query(manufacturer_name):
             WHERE Manufacturer_name =  '{manufacturer_name}') AS repairs  \
             ON Repairs.Vehicle_type = UnionVt.VT \
             GROUP BY UnionVt.VT \
-            ORDER BY Count_Repairs ASC"
+            ORDER BY Count_Repairs DESC"
 
     return query
 

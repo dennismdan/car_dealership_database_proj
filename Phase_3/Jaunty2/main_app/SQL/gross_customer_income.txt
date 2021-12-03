@@ -15,7 +15,7 @@ END AS  FirstService
 END AS MostRecentService
 ,COUNT(s.Sale_date) AS NumberOfSales
 ,COUNT(r.Start_date) AS NumberOfRepairs
-,ISNULL(SUM(s.Sale_price),0)  + ISNULL(SUM(r.Total_cost),0) AS GrossIncome
+,CAST(ISNULL(SUM(s.Sale_price),0)  + ISNULL(SUM(r.Total_cost),0) AS numeric(16,2)) AS GrossIncome
 FROM Customer c
 LEFT JOIN (SELECT p.Customer_id, (p.First_name + ' ' + p.Last_name)as CustomerName FROM Person p
 			UNION
