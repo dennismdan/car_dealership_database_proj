@@ -1,0 +1,6 @@
+CS 6400- Fall 2021 Team 081
+
+# Compilation of all files containing SQL used in implementation: Phase_3/sql_deliverables
+# schema.sql : Phase_3/sql_deliverables
+# stage_data.sql(optional) : Phase_3/sql_deliverables
+# sql files used in code: Phase_3/Jaunty2/main_app/SQL
