@@ -280,18 +280,24 @@ def get_search_vehicle_query(user_input: dict) -> str:
 
     vehicle_fields = ["Manufacturer_name", "Year", "VIN", "Vehicle_type", "Model_name"]
 
+    print("User inputs: ", user_input)
+    print("Query : ", query)
+
+    if "sold_unsold_filter" in user_input:
+        if user_input["sold_unsold_filter"] == "all":
+            where_clause = []
+        elif user_input["sold_unsold_filter"] == "unsold":
+            where_clause = [" v.VIN NOT IN ( SELECT s.VIN FROM Sale s) "]
+        elif user_input["sold_unsold_filter"] == "sold":
+            where_clause = [" v.VIN IN ( SELECT s.VIN FROM Sale s) "]
+    else:
+        where_clause = [" v.VIN NOT IN ( SELECT s.VIN FROM Sale s) "]
 
     for key, val in user_input.items():
+        print("key: ",key,"val: ", val)
 
         if (val != "all") and (val != ""):
-            if val == "sold":  # for sold unsold filter
-                where_clause = []
-                where_clause.append(f"WHERE v.VIN IN ( SELECT s.VIN FROM Sale s) ")
-            elif val == "all vehicles":
-                where_clause=[]
-                where_clause.append(f" 'dummy'='dummy' ")
-            else:
-                where_clause = [" WHERE v.VIN NOT IN ( SELECT s.VIN FROM Sale s) "]
+
 
             if key in vehicle_fields:
                 if key == "VIN":
@@ -313,9 +319,11 @@ def get_search_vehicle_query(user_input: dict) -> str:
                 for word in keywords:
                     where_clause.append(f"(Description LIKE '%{word}%')")
 
+
     if len(where_clause) > 0:
-        query += " AND ".join(where_clause)
+        query += " WHERE "+" AND ".join(where_clause)
     query += " ORDER BY VIN ASC"
+    print("Query : ", query)
     return query
 
 
