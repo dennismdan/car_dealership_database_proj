@@ -29,7 +29,7 @@ urlpatterns = [
     path('edit_repair/<str:VIN>/<int:Customer_id>/<str:Start_date>/', views.edit_repair, name="edit_repair"),
     path('add_part/<str:VIN>/<int:Customer_id>/<str:Start_date>/', views.add_part, name="add_part"),
     path('view_part/<str:VIN>/<int:Customer_id>/<str:Start_date>/', views.view_part, name="view_part"),
-    path('gross_customer_income_drilldown/<str:CustomerName>/',
+    path('gross_customer_income_drilldown/<int:Customer_id>/',
          views.gross_customer_income_drilldown,
          name="gross_customer_income_drilldown"),
     path('repairsby_manu_type_model_drill/<str:manufacturer_name>/',
