@@ -45,6 +45,27 @@ def update_row(query: str):
 
     return status, message_class
 
+def update_table(query: str):
+    """
+    :param query:
+    :return:
+    """
+    print("Update table query: ", query)
+    try:
+        connection_str = compose_pyodbc_connection()
+        conn = pyodbc.connect(connection_str)
+        cursor = conn.cursor()
+        cursor.execute(query)
+        conn.commit()
+        cursor.close()
+        status = "Updated table successfully!"
+        message_class = "success"
+    except Exception as e:
+        print(e)
+        status = "Issue when updating row."
+        message_class = "error"
+
+    return status, message_class
 
 def stage_repair_data(row_dict, edit_allowed ):
     query = get_query_with_condition(table_name="Repair",
@@ -273,7 +294,6 @@ def get_search_vehicle_query(user_input: dict) -> str:
         where_clause = [" v.VIN NOT IN ( SELECT s.VIN FROM Sale s) "]
 
     for key, val in user_input.items():
-
         if (val != "all") and (val != ""):
 
 
@@ -301,7 +321,7 @@ def get_search_vehicle_query(user_input: dict) -> str:
     if len(where_clause) > 0:
         query += " WHERE "+" AND ".join(where_clause)
     query += " ORDER BY VIN ASC"
-    print("Query : ", query)
+
     return query
 
 
