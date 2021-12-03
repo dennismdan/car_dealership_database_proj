@@ -279,11 +279,20 @@ def get_search_vehicle_query(user_input: dict) -> str:
             if key == "keywords":
                 keywords = user_input["keywords"].split(',')
                 for word in keywords:
-                    where_clause.append(f"(Description LIKE '%{word}%')")
+                    where_clause.append(f"(v.Manufacturer_name like f'%{word}%' OR v.Year like f'%{word}%' OR v.Model_name like f'%{word}%' OR v.Description like f'%{word}%')")
+
+            if key == "keywords":
+                keywords = user_input["keywords"].split(',')
+                for word in keywords:
+                    where_clause.append(f"(v.Manufacturer_name like f'%{word}%' OR v.Year like f'%{word}%' OR v.Model_name like f'%{word}%' OR v.Description like f'%{word}%')")
+
+
+
 
     if len(where_clause) > 0:
         query += " AND ".join(where_clause)
     query += " ORDER BY VIN ASC"
+    print(query)
     return query
 
 

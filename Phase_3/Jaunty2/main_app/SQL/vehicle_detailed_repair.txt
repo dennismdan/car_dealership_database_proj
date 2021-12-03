@@ -1,11 +1,9 @@
 SELECT
 cp.CustomerName
 ,(e.First_name + ' ' + e.Last_name) as ServiceWriter
-,r.Start_date, r.Completion_date, r.Labor_charges, r.Total_cost
+,r.Start_date, r.Completion_date, CAST(r.Labor_charges AS numeric(16,2)) AS Labor_charges , r.Total_cost
 FROM Repair r
 LEFT JOIN EmployeeUser e ON r.Username=e.Username
-
-
 LEFT JOIN Customer c ON r.Customer_id=c.Customer_id
 LEFT JOIN (SELECT p.Customer_id, (p.First_name + ' ' + p.Last_name)as CustomerName FROM Person p
 			UNION

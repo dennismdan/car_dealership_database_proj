@@ -1,8 +1,8 @@
 SELECT v.VIN
 ,VehicleType.Vehicle_type
 ,v.Year,v.Manufacturer_name,v.Model_name,V.Description
-, color = ( SELECT DISTINCT STRING_AGG(c.Color,' | ') FROM Color c WHERE c.VIN=v.VIN)
-,v.List_price
+,color = ( SELECT DISTINCT STRING_AGG(c.Color,' | ') FROM Color c WHERE c.VIN=v.VIN)
+,CAST(v.List_price AS numeric(16,2)) AS List_price
 FROM Vehicle v
 LEFT JOIN (
 		SELECT Car.VIN, 'Car' AS Vehicle_type FROM Car

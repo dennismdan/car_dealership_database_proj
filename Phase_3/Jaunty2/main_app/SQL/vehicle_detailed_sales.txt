@@ -1,6 +1,6 @@
 SELECT
 s.Sale_date,
-s.Sale_price,
+CAST(s.Sale_price AS numeric(16,2)) AS Sale_price,
 (e.First_name + ' ' + e.Last_name) as SalesPersonName,
 cp.CustomerName as BuyerName,
 c.Phone_number as BuyerPhone,
