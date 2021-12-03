@@ -481,7 +481,7 @@ def get_monthly_sales_drilldown_query(year, month):
            COUNT(s.Username) NumberVehiclesSold, \
            YEAR(s.Sale_date) AS SaleYear \
            ,MONTH(s.Sale_date) AS SaleYear \
-           ,SUM(s.Sale_price) TotalSales \
+           ,CAST(SUM(s.Sale_price) AS numeric (16,2)) TotalSales \
            FROM Sale s \
            LEFT JOIN EmployeeUser eu ON s.Username = eu.Username \
            WHERE YEAR(s.Sale_date) = {year} AND MONTH(s.Sale_date) = {month} \
