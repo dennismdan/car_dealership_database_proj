@@ -33,13 +33,15 @@
     </tr>
     {% for row in data %}
         {% if report_type == "Monthly Sales" %}
-            <tr onclick="location.href='{% url 'monthlysales_drilldown' row.0 row.1 %}'" name='reports'>
+            <tr onclick="location.href='{% url 'monthlysales_drilldown' row.0 row.1 %}'"
+                name='reports'
+                style="background-color:{{row.6}}">
         {% elif report_type == "Gross Customer Income" %}
             <tr onclick="location.href='{% url 'gross_customer_income_drilldown' row.0 %}'" name='reports'>
         {% elif report_type == "Repairs By Manufacturer/Type/Model" %}
             <tr onclick="location.href='{% url 'repairsby_manu_type_model_drill' row.0 %}'" name='reports'>
-        {% else %}
-            <tr name='reports'>
+        {% elif report_type == "Below Cost Sales" %}
+            <tr name='reports' style="background-color:{{row.4}}">
         {% endif %}
 
         {% for cell in row %}
