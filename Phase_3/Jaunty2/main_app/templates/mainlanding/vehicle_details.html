@@ -97,9 +97,7 @@
 <button class="done" type="submit" onclick="history.back()">Done</button>
 
 {% if user in "sales_person,owner" %}
-    {% if sales_data.status == "No results found for: sales" %}
     <button type="submit" onclick="location.href='{% url 'sell_vehicle' vin %}'" name='sell_vehicle'>Sell</button>
-    {% endif %}
 {% endif %}
 {% endblock %}
 
