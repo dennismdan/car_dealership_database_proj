@@ -373,11 +373,6 @@ class SellVehicle(forms.Form):
         return row
 
 class AddVehicleForm(forms.Form):
-    '''
-   TODO: right now color chices are hard coded
-   we want to retrieve these with a query pass as parameter
-   TODO: Vehicle type, manufacturer name, and model year, keyword is a drop down
-   '''
 
     VIN = forms.CharField(required=True, validators=[check_vin_exsitance])
     year = forms.IntegerField(min_value=1920,
@@ -503,6 +498,7 @@ class FindRepairForm(forms.Form):
         data = self.data.dict()
         data = {"VIN":data["VIN"],"Customer_id":data["Customer_id"],"Start_date":data["Start_date"]}
         can_edit = not is_repair_complete(data)
+        print("can edit: ",can_edit)
         return data, can_edit
 
 class AddPartForm(forms.Form):
@@ -556,8 +552,6 @@ class AddPartForm(forms.Form):
                 data["Price"])
 
         return row
-
-
 
 class AddRepair(forms.Form):
   VIN = forms.CharField()
@@ -622,7 +616,6 @@ class RepairForm(forms.Form):
         else:
             field_view_mode = {col:True for col in cols}
 
-
         self.fields["VIN"] = forms.CharField(initial=init_data["VIN"],
                                              validators=[vin_exists],
                                             disabled=field_view_mode["VIN"])
@@ -663,6 +656,11 @@ class RepairForm(forms.Form):
         start_date = cleaned_data.get('Start_date')
         end_date = cleaned_data.get("Completion_date")
         Labor_charges = cleaned_data.get("Labor_charges")
+        Labor_charges = float(Labor_charges) if Labor_charges not in ["",None] else 0.0
+
+        Prior_labor_charge = self.init_data["Labor_charges"]
+        Prior_labor_charge = float(Prior_labor_charge) if Prior_labor_charge not in ["",None] else 0.0
+
 
         if not self.update_repair:
 
@@ -681,38 +679,46 @@ class RepairForm(forms.Form):
                 raise ValidationError({'Start_date': 'There is an open repair for this vin. \n '\
                                                     'Cannot have more than one repair open per vin.'})
 
+        print(Labor_charges)
+        print(type(Labor_charges))
+        if (Prior_labor_charge != 0.0) and \
+                (Labor_charges > Prior_labor_charge) and \
+                (os.environ["USER_ROLE"] != "owner"):
+            raise ValidationError({'Labor_charges': f'New labor charge {Labor_charges} > '\
+                                                    f'{Prior_labor_charge} (previous record). \n ' \
+                                                 'Only the owner can update the labor charge to be higher than before.'})
+
         if end_date:
             repair_starts_then_ends = repair_starts_before_ends(start_date, end_date)
             if not repair_starts_then_ends:  # This will check for None or Empty
-                raise ValidationError({'Start_date': 'Repair end date is not valid. \n '\
+                raise ValidationError({'Completion_date': 'Repair end date is not valid. \n '\
                                                      'Repair must end after start date.'})
-        if self.close_repair:
-            # check completion date value
-            # check labor charges
-            if end_date == '':
-                raise ValidationError({'Completion_date': 'Must have a competion date before closing.'})
-            if Labor_charges == '':
-                raise ValidationError({'Labor_charges': 'Must have a labor charges date before closing.'})
+
 
     def extract_data(self):
         data = self.data.dict()
+        init_data = self.init_data
 
-        if data["Total_cost"] == '':
-            data["Total_cost"] = None
-        if data["Completion_date"] == '':
-            data["Completion_date"] = None
+        for k,v in data.items():
+            if v == "":
+                data[k] = None
+
+        for k,v in init_data.items():
+            if v == "":
+                init_data[k] = None
 
         if self.add_repair:
+
             repair = (data["VIN"],data["Customer_id"],data["Start_date"],
                       data["Labor_charges"],data["Total_cost"],data["Description"],
                       data["Completion_date"],data["Odometer_reading"],data["Username"])
 
         elif len(self.edit_fields)>0:
-            init_data = self.init_data
+
 
 
             repair = {"inidata":[init_data["VIN"],init_data["Customer_id"],init_data["Start_date"],
-                      data["Labor_charges"],data["Total_cost"],init_data["Description"],
+                      data["Labor_charges"],init_data["Total_cost"],init_data["Description"],
                       data["Completion_date"],init_data["Odometer_reading"],init_data["Username"]],
                       "update_fields":
                           {self.edit_fields[i]:data[self.edit_fields[i]] for i in range(len(self.edit_fields))},
