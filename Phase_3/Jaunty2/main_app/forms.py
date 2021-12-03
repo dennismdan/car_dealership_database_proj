@@ -9,8 +9,11 @@ from main_app.utils import (get_colors,
                             run_reports,
                             find_customer,
                             get_customer_id,
-                            run_query,check_if_instance_exists,
-                            is_repair_complete)
+                            run_query,
+                            check_if_instance_exists,
+                            is_repair_complete,
+                            repair_start_date_is_unique,
+                            repair_starts_before_ends)
 
 from datetime import datetime, date, timedelta
 from pytz import timezone
@@ -116,6 +119,26 @@ def check_vin_exsitance(vin):
         ))
     else:
         return vin
+def vin_exists(vin):
+
+    value_exists = check_if_instance_exists("Vehicle",["VIN"],[("VIN",vin)])
+
+    if not value_exists:
+        raise ValidationError((
+            f"Vehicle VIN not in inventory"
+        ))
+    else:
+        return vin
+def check_if_customer_exists(Customer_id):
+    result = check_if_instance_exists("Customer", ["Customer_id"], [("Customer_id",Customer_id)])
+    if not result:
+        raise ValidationError((
+            f"Customer_id not in the table, add new customer, \n"\
+            "or double check Customer_id value."
+        ))
+    else:
+        return result
+
 
 class LoginForm(forms.Form):
     user = forms.CharField(max_length=100)
@@ -129,7 +152,7 @@ class QueryVehicleForm(forms.Form):
    '''
     color_choices = get_colors()
     vehicle_choices = [(0,"Car"),(1,"Convertible"),(2,"SUV"),(3,"Truck"),(4,"VanMinivan"),(5,"all")]
-    sold_unsold_options = [(0, "all vehicles"), (1, "sold"), (2, "unsold")]
+    sold_unsold_options = [(0, "all"), (1, "sold"), (2, "unsold")]
     manufacturer_names = get_manufacturer_names()
     year_choices = [(r, r) for r in range(1920, date.today().year + 1)]
     year_choices.append((0,0))
@@ -491,7 +514,7 @@ class AddPartForm(forms.Form):
     '''
 
     vehicle_type = os.getenv("VEHICLE_TYPE","Car")
-    print(vehicle_type)
+
     vehicle_choices = [(0, "Car"), (1, "Convertible"), (2, "SUV"), (3, "Truck"), (4, "VanMinivan")]
 
     initial_choice = [car[0] for car in vehicle_choices if car[1] == "Car"][0]
@@ -546,32 +569,44 @@ class AddRepairForm(forms.Form):
 
 class ViewEditRepairForm(forms.Form):
 
-    def __init__(self,init_data,edit_allowed,add_repair, *args, **kwargs):
+    def __init__(self,init_data,edit_fields,add_repair, *args, **kwargs):
+        """
+        :param init_data: dictionary with all data
+        :param edit_fields: one or both of Total_cost and Completion_date
+        :param add_repair: bool
+        :param args:
+        :param kwargs:
+        """
+        self.add_repair = add_repair
+        self.edit_fields = edit_fields
 
-        super(SellVehicle, self).__init__(*args, **kwargs)
+        super(ViewEditRepairForm, self).__init__(*args, **kwargs)
         cols = ["VIN","Customer_id","Start_date","Labor_charges",
                 "Total_cost","Description","Completion_date","Odometer_reading","Username"]
 
         if add_repair:
             field_view_mode = {col:False for col in cols}
-        elif edit_allowed:
+        elif edit_fields:
             field_view_mode = {col:True for col in cols}
-            field_view_mode["Completion_date"] = False
-            field_view_mode["Total_cost"] = False
+            for field in edit_fields:
+                field_view_mode[field] = False
         else:
             field_view_mode = {col:True for col in cols}
 
         self.fields["VIN"] = forms.CharField(initial=init_data["VIN"],
-                                             validators=[check_vin_exsitance],
+                                             validators=[vin_exists],
                                             disabled=field_view_mode["VIN"])
         self.fields["Customer_id"] = forms.IntegerField(initial=init_data["Customer_id"],
+                                                        validators=[check_if_customer_exists],
                                                          disabled=field_view_mode["Customer_id"])
         self.fields["Start_date"] = forms.DateField(initial=init_data["Start_date"],
                                                     disabled=field_view_mode["Start_date"])
         self.fields["Labor_charges"] = forms.CharField(initial=init_data["Labor_charges"],
+                                                       validators=[validate_decimals],
                                                         disabled=field_view_mode["Labor_charges"])
         self.fields["Total_cost"] = forms.CharField(initial=init_data["Total_cost"],
                                                      disabled=field_view_mode["Total_cost"],
+                                                    validators=[validate_decimals],
                                                      required=False)
         self.fields["Description"] = forms.CharField(initial=init_data["Description"],
                                                     disabled=field_view_mode["Description"])
@@ -581,24 +616,62 @@ class ViewEditRepairForm(forms.Form):
         self.fields["Odometer_reading"] = forms.CharField(initial=init_data["Odometer_reading"],
                                                         disabled=field_view_mode["Odometer_reading"])
         self.fields["Username"] = forms.CharField(initial=init_data["Username"],
+                                                  validators=[employee_lookup],
                                                 disabled=field_view_mode["Username"])
+        print(list(self.fields.keys()))
 
     def clean(self):
-        cleaned_data = super().clean()
-        if not cleaned_data.get('licence_nr') and not cleaned_data.get('TIN'):  # This will check for None or Empty
-            raise ValidationError({'licence_nr': 'One of licence_nr or TIN should have a value.'})
+        if self.edit_fields:
+            print("Edit fields, TODO: implement checks")
+        else:
+            cleaned_data = super().clean()
+            vin = cleaned_data.get('VIN')
+            Customer_id = cleaned_data.get('Customer_id')
+            start_date = datetime.strptime(cleaned_data.get('Start_date'), '%Y-%m-%d')
+
+            end_date = cleaned_data.get("Completion_date")
+            repair_is_unique = repair_start_date_is_unique(vin, start_date)
+
+            if not repair_is_unique:  # This will check for None or Empty
+                raise ValidationError({'Start_date': 'Vin with this start date already exists. \n '\
+                                                     'You can have at most one repair per vin per day.'})
+            if end_date:
+                repair_starts_then_ends = repair_starts_before_ends(start_date, end_date)
+                if not repair_starts_then_ends:  # This will check for None or Empty
+                    raise ValidationError({'Start_date': 'Repair end date is not valid. \n '\
+                                                         'Repair must end after start date.'})
+
+            repair_key_fields = {"VIN": vin, "Customer_id": Customer_id, "Start_date": start_date}
+            repair_is_complete = is_repair_complete(repair_key_fields)
+
+            vin_repairs = run_query("SELECT * FROM Repair WHERE VIN = '{vin}'")[0]
+
+            if not repair_is_complete and vin_repairs:
+                raise ValidationError({'Start_date': 'There is an open repair for this vin. \n '\
+                                                    'Cannot have more than one repair open per vin.'})
 
     def extract_data(self):
         data = self.data.dict()
+        if data["Total_cost"] == '':
+            data["Total_cost"] = None
+        if data["Completion_date"] == '':
+            data["Completion_date"] = None
 
-        if len(data["licence_nr"])>0:
-            id = get_customer_id(data["licence_nr"], "licence_nr")
-            print("person id is used",id)
+        if self.add_repair:
+            repair = (data["VIN"],data["Customer_id"],data["Start_date"],
+                      data["Labor_charges"],data["Total_cost"],data["Description"],
+                      data["Completion_date"],data["Odometer_reading"],data["Username"])
 
+        elif len(self.edit_fields)>0:
+            repair = {"inidata":[data["VIN"],data["Customer_id"],data["Start_date"],
+                      data["Labor_charges"],data["Total_cost"],data["Description"],
+                      data["Completion_date"],data["Odometer_reading"],data["Username"]],
+                      "update_fields":
+                          {self.edit_fields[i]:data[self.edit_fields[i]] for i in range(len(self.edit_fields))},
+                      "where_fields":{"VIN":data["VIN"],
+                                      "Customer_id":data["Customer_id"],
+                                      "Start_date":data["Start_date"]}}
         else:
-            id = get_customer_id(data["TIN"], "TIN")
-            print("business id is used",id)
+            repair = None
 
-        row = (data["VIN"],data["sales_person_username"],id,data["sales_price"],data["sales_date"])
-
-        return row
+        return repair
