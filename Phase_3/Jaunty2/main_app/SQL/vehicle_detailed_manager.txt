@@ -10,11 +10,11 @@ v.Model_name,
 color = ( SELECT DISTINCT STRING_AGG(c.Color,' | ') FROM Color c WHERE c.VIN=v.VIN),
 v.List_price,
 V.Description,
-vc.*,
-vs.*,
-vt.*,
-vco.*,
-vv.*
+vc.Doors_count,
+vs.Cupholder_count,vs.Drivetrain_type,
+vt.Axle_count,vt.Cargo_capacity,vt.Cargo_cover_type,vt.Cargo_cover_type,
+vco.Roof_type,
+vv.Has_driver_back_door
 FROM Vehicle v
 LEFT JOIN (
 SELECT Car.VIN, 'Car' AS Vehicle_type FROM Car
