@@ -679,10 +679,8 @@ class RepairForm(forms.Form):
                 raise ValidationError({'Start_date': 'There is an open repair for this vin. \n '\
                                                     'Cannot have more than one repair open per vin.'})
 
-        print(Labor_charges)
-        print(type(Labor_charges))
         if (Prior_labor_charge != 0.0) and \
-                (Labor_charges > Prior_labor_charge) and \
+                (Labor_charges < Prior_labor_charge) and \
                 (os.environ["USER_ROLE"] != "owner"):
             raise ValidationError({'Labor_charges': f'New labor charge {Labor_charges} > '\
                                                     f'{Prior_labor_charge} (previous record). \n ' \
