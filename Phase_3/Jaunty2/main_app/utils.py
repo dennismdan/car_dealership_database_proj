@@ -17,7 +17,7 @@ from datetime import datetime
 def gen_query_update_row(table_name: str,
                          update_fields: dict,
                          where_fields: dict ) -> str:
-    set_clause = ", ".join([f"{key} = '{val}'" for key,val in update_fields.items() if val is not None])
+    set_clause = ", ".join([f"{key} = '{val}'" for key,val in update_fields.items() if val not in [None,""]])
     where_clause = " AND ".join([f"{key} = '{val}'" for key, val in where_fields.items()])
 
     query = f"UPDATE {table_name} SET {set_clause} WHERE {where_clause};"
@@ -63,7 +63,7 @@ def stage_repair_data(row_dict, edit_allowed ):
         css_class = "error"
 
     if edit_allowed and results:
-        edit_cols = ["Completion_date", "Labor_charges","Total_cost"]
+        edit_cols = ["Completion_date", "Labor_charges"]
     else:
         edit_cols = []
 
@@ -75,14 +75,23 @@ def is_repair_complete(repair_key_fields:dict)->bool:
     :return: True/False indicating if a repair is complete
     """
     where_clause = " AND ".join([f"{k} = '{v}'" for k, v in repair_key_fields.items()])
-    query = "SELECT Completion_date FROM Repair WHERE " + where_clause
-    complete_date = run_query(query)[0]
-    if len(complete_date)>0:
-        complete_date = complete_date[0][0]
+    query = "SELECT Completion_date,Labor_charges,Total_cost FROM Repair WHERE " + where_clause
+    row = run_query(query)[0]
+    if row:
+        row = row[0]
     else:
-        complete_date = None
+        return False
 
-    return complete_date not in [None,""]
+    complete = []
+
+    for val in row:
+        if val in ["",None]:
+            complete.append(False)
+        else:
+            complete.append(True)
+
+    print("inside repair complete: ", all(complete))
+    return all(complete)
 
 def repair_start_date_is_unique(vin:str,start_date:datetime)->bool:
     """
@@ -228,6 +237,7 @@ def gen_query_add_row(table_name: str, row: tuple, skip_col_list: list = []) -> 
 
         colnames = new_cols
 
+
     colnames = ','.join(colnames)
 
     row_len = len(row)
@@ -235,6 +245,7 @@ def gen_query_add_row(table_name: str, row: tuple, skip_col_list: list = []) -> 
     row = ",".join(["?" for i in range(row_len)])
     query = f"INSERT INTO {table_name}({colnames}) VALUES ({row}) "
     print("Insert row query: ", query)
+
     return query
 
 
@@ -248,18 +259,23 @@ def get_search_vehicle_query(user_input: dict) -> str:
 
     vehicle_fields = ["Manufacturer_name", "Year", "VIN", "Vehicle_type", "Model_name"]
 
+    print("User inputs: ", user_input)
+    print("Query : ", query)
+
+    if "sold_unsold_filter" in user_input:
+        if user_input["sold_unsold_filter"] == "all":
+            where_clause = []
+        elif user_input["sold_unsold_filter"] == "unsold":
+            where_clause = [" v.VIN NOT IN ( SELECT s.VIN FROM Sale s) "]
+        elif user_input["sold_unsold_filter"] == "sold":
+            where_clause = [" v.VIN IN ( SELECT s.VIN FROM Sale s) "]
+    else:
+        where_clause = [" v.VIN NOT IN ( SELECT s.VIN FROM Sale s) "]
 
     for key, val in user_input.items():
 
         if (val != "all") and (val != ""):
-            if val == "sold":  # for sold unsold filter
-                where_clause = []
-                where_clause.append(f"WHERE v.VIN IN ( SELECT s.VIN FROM Sale s) ")
-            elif val == "all vehicles":
-                where_clause=[]
-                where_clause.append(f" 'dummy'='dummy' ")
-            else:
-                where_clause = [" WHERE v.VIN NOT IN ( SELECT s.VIN FROM Sale s) "]
+
 
             if key in vehicle_fields:
                 if key == "VIN":
@@ -279,20 +295,13 @@ def get_search_vehicle_query(user_input: dict) -> str:
             if key == "keywords":
                 keywords = user_input["keywords"].split(',')
                 for word in keywords:
-                    where_clause.append(f"(v.Manufacturer_name like f'%{word}%' OR v.Year like f'%{word}%' OR v.Model_name like f'%{word}%' OR v.Description like f'%{word}%')")
-
-            if key == "keywords":
-                keywords = user_input["keywords"].split(',')
-                for word in keywords:
-                    where_clause.append(f"(v.Manufacturer_name like f'%{word}%' OR v.Year like f'%{word}%' OR v.Model_name like f'%{word}%' OR v.Description like f'%{word}%')")
-
-
+                    where_clause.append(f"(Description LIKE '%{word}%')")
 
 
     if len(where_clause) > 0:
-        query += " AND ".join(where_clause)
+        query += " WHERE "+" AND ".join(where_clause)
     query += " ORDER BY VIN ASC"
-    print(query)
+    print("Query : ", query)
     return query
 
 

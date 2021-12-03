@@ -31,6 +31,8 @@ from .utils import (run_query,
                     stage_repair_data,
                     update_row,
                     gen_query_update_row,
+                    get_query_from_file,
+                    update_table
                     )
 from .runtime_constants import USER_ROLE
 from .utils import get_data_for_template_customerdrill,get_data_for_template_repairby_manutypemodel
@@ -500,8 +502,6 @@ def repairs(request):
             else:
                 view_type = "view_repair"
 
-    print("Status",status)
-    print(view_type)
     return render(request,
                   'mainlanding/repairs.html',
                   {'user':os.environ["USER_ROLE"],
@@ -534,6 +534,15 @@ def add_repair(request):
             query = gen_query_add_row("Repair",row)
             status,css_class = insert_row(query,row)
             status = {"status": status, "css_class": css_class}
+
+            if status["css_class"] == "success":
+                primary_keys = {"VIN": row[0],
+                             "Customer_id": row[1],
+                             "Start_date": row[2]}
+                total_cost_update_status = update_total_cost(primary_keys)
+
+                print("Total Cost Update Status: ", total_cost_update_status)
+
     return render(request,
                   'mainlanding/repairs.html',
                   {'user':os.environ["USER_ROLE"],
@@ -632,6 +641,8 @@ def edit_repair(request,VIN,Customer_id,Start_date):
     row_dict = {"VIN":VIN,
                "Customer_id":Customer_id,
                "Start_date":Start_date}
+    primary_keys = row_dict.copy()
+
     edit_allowed = True
     data, edit_cols, status, css_class = stage_repair_data(row_dict, edit_allowed)
     status = {"status": status, "css_class": css_class}
@@ -657,7 +668,8 @@ def edit_repair(request,VIN,Customer_id,Start_date):
                 query = gen_query_update_row("Repair", update_fields, where_fields)
                 status, css_class = update_row(query)
                 status = {"status": status, "css_class": css_class}
-
+                total_cost_update_status, total_cost_status = update_total_cost(primary_keys)
+                print("Total Cost Update Status: ", total_cost_update_status)
     return render(request,
                   'mainlanding/repairs.html',
                   {'user':os.environ["USER_ROLE"],
@@ -665,4 +677,64 @@ def edit_repair(request,VIN,Customer_id,Start_date):
                    "status":status,
                    "view_type":view_type,
                    })
+
+def close_repair(request,VIN,Customer_id,Start_date):
+    row_dict = {"VIN":VIN,
+               "Customer_id":Customer_id,
+               "Start_date":Start_date}
+    edit_allowed = True
+    data, edit_cols, status, css_class = stage_repair_data(row_dict, edit_allowed)
+    status = {"status": status, "css_class": css_class}
+
+    view_type = "edit_repair"
+
+    form = RepairForm(init_data=data,
+                      edit_fields=edit_cols,
+                      add_repair=False)
+
+    total_cost_update_status, total_cost_status = update_total_cost(row_dict)
+
+    print("Total Cost Update Status: ", total_cost_update_status)
+
+    status,css_class = check_closing_data(data)
+
+    if css_class == "success" and total_cost_status == "success":
+        view_type = "view_repair"
+        form = RepairForm(init_data=data,
+                          edit_fields=[],
+                          add_repair=False)
+    css_class = "success" if all(css_class,total_cost_status) else "error"
+    status = {"status": status+total_cost_update_status, "css_class": css_class}
+    return render(request,
+                  'mainlanding/repairs.html',
+                  {'user':os.environ["USER_ROLE"],
+                   "form":form,
+                   "status":status,
+                   "view_type":view_type,
+                   })
+
+def check_closing_data(data):
+    fail_values = [None,""]
+    check_fields = ["Labor_charges", "Total_cost","Completion_date"]
+    status = ""
+    for field in check_fields:
+        if data[field] in fail_values:
+            status+= f"Field {field} cannot be empty. "
+
+    if status == "":
+        status = "Repair successfully closed."
+        css_class = "success"
+    else:
+        css_class = "error"
+
+    return status,css_class
+
+def update_total_cost(primary_keys):
+    query = get_query_from_file("update_total_cost.txt")
+    VIN = primary_keys["VIN"]
+    Customer_id = primary_keys["Customer_id"]
+    Start_date = primary_keys["Start_date"]
+    query+= f" r.VIN = '{VIN}' and r.Customer_id = '{Customer_id}' and r.Start_date = '{Start_date}'"
+    status, css_status = update_table(query)
+    return status+" "+css_status, css_status
 

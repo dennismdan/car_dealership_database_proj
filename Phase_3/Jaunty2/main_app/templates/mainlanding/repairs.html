@@ -67,8 +67,13 @@
             {{ form.as_p }}
             <input type="submit"  value="Update Repair">
         </form>
+        <p>Make sure to update repair before closing.</p>
+        <button type="submit"
+                onclick="location.href='{% url 'close_repair' form.VIN.value form.Customer_id.value form.Start_date.value %}'"
+                name='repairs'>Close Repair</button>
+        <br>
         <p class={{status.css_class}}> Repair Status: {{ status.status }} </p>
-
+        <br>
     {% elif view_type == "view_part" %}
 
         <h3> Parts for the Current Repair</h3>

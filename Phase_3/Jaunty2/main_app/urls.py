@@ -27,6 +27,7 @@ urlpatterns = [
     path('monthlysales_drilldown/<int:year>/<int:month>/', views.monthlysales_drilldown, name="monthlysales_drilldown"),
     path('add_repair/', views.add_repair, name="add_repair"),
     path('edit_repair/<str:VIN>/<int:Customer_id>/<str:Start_date>/', views.edit_repair, name="edit_repair"),
+    path('close_repair/<str:VIN>/<int:Customer_id>/<str:Start_date>/', views.close_repair, name="close_repair"),
     path('add_part/<str:VIN>/<int:Customer_id>/<str:Start_date>/', views.add_part, name="add_part"),
     path('view_part/<str:VIN>/<int:Customer_id>/<str:Start_date>/', views.view_part, name="view_part"),
     path('gross_customer_income_drilldown/<int:Customer_id>/',
