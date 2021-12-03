@@ -1,5 +1,5 @@
 import os
-
+from datetime import datetime
 from django.shortcuts import render
 from django.http import HttpResponseRedirect
 from .forms import (LoginForm,
@@ -14,7 +14,7 @@ from .forms import (LoginForm,
                     FindRepairForm,
                     AddPartForm,
                     AddRepairForm,
-                    ViewEditRepairForm)
+                    RepairForm)
 from .forms import AddRepair
 from .utils import run_query, get_search_vehicle_query, run_reports,insert_row,get_data_for_template_report
 from .utils import (run_query,
@@ -59,7 +59,6 @@ def home(request):
         form = QueryVehicleForm(request.POST)
 
         if form.is_valid():
-            print("POST statement from home page")
             user_input = form.extract_data()
             query = get_search_vehicle_query(user_input) # generate query
             data, header = run_query(query) # run query
@@ -184,11 +183,6 @@ def repairsby_manu_type_model_drill(request,manufacturer_name):
                   'mainlanding/repairby_manutypemodel_details.html',
                   context)
 
-def click(request):
-    print("clicked")
-    return render(request, 'mainlanding/clicked.html',
-                  {'user':os.environ["USER_ROLE"]})
-
 def login(request):
     users = {"regular_user": "Regular User",
              "manager": "Manager",
@@ -213,11 +207,9 @@ def filter_vehicles(request):
 
 def update_add_customer(request, ):
     home_status = "Setting the add customer template with individual or business."
-    print(home_status)
     path = request.path
 
     customer_type = path[1:-1]
-    print("Customer set to: ",customer_type)
 
     os.environ["ADD_USER_TYPE"] = customer_type
     form = AddCustomer()
@@ -490,24 +482,24 @@ def repairs(request):
     status = {"status":status,"css_class":css_class}
 
     if request.method == 'POST':
-        repair_form = FindRepairForm(data=request.POST)
-        if repair_form.is_valid():
-            row_dict, edit_allowed = repair_form.extract_data()
+        form = FindRepairForm(data=request.POST)
+        if form.is_valid():
+            row_dict, edit_allowed = form.extract_data()
             data, edit_cols, status,css_class = stage_repair_data(row_dict, edit_allowed)
             status = {"status": status, "css_class": css_class}
             add_repair = False
-            repair_form = ViewEditRepairForm(init_data = data,
-                                      edit_fields = edit_cols,
-                                      add_repair = add_repair)
+            form = RepairForm(init_data = data,
+                              edit_fields = edit_cols,
+                              add_repair = add_repair)
 
             if edit_allowed and edit_cols:
                 view_type = "edit_repair"
-                part_form = AddPartForm()
-                form = {"edit_repair": repair_form, "add_part": part_form}
+
             else:
                 view_type = "view_repair"
-                form = repair_form
 
+    print("Status",status)
+    print(view_type)
     return render(request,
                   'mainlanding/repairs.html',
                   {'user':os.environ["USER_ROLE"],
@@ -521,20 +513,20 @@ def add_repair(request):
             "Total_cost", "Description", "Completion_date", "Odometer_reading", "Username"]
     init_data = {cols[i]: "" for i in range(len(cols))}
 
-    add_repair_form = ViewEditRepairForm(init_data = init_data,
-                              edit_fields=[],
-                              add_repair=True)
+    add_repair_form = RepairForm(init_data = init_data,
+                                 edit_fields=[],
+                                 add_repair=True)
     view_type = "add_repair"
     status = ""
     css_class = "normal"
     status = {"status":status,"css_class":css_class}
 
     if request.method == 'POST':
-        add_repair_form = ViewEditRepairForm(data=request.POST,
-                                             init_data = init_data,
-                                             edit_fields=[],
-                                             add_repair=True
-                                             )
+        add_repair_form = RepairForm(data=request.POST,
+                                     init_data = init_data,
+                                     edit_fields=[],
+                                     add_repair=True
+                                     )
         if add_repair_form.is_valid():
             row = add_repair_form.extract_data()
             query = gen_query_add_row("Repair",row)
@@ -548,57 +540,122 @@ def add_repair(request):
                    "view_type":view_type,
                    })
 
-def edit_repair(request):
-    cols = ["VIN", "Customer_id", "Start_date", "Labor_charges",
-            "Total_cost", "Description", "Completion_date", "Odometer_reading", "Username"]
-    print("Edit Repair")
-    print(request)
-    init_data = {cols[i]: "" for i in range(len(cols))}
-    edit_fields = []
-    for key, value in request.POST.items():
-        if key in cols and value not in [None, ""]:
-            init_data[key] = value
-            edit_fields.append(key)
+def view_part(request,VIN,Customer_id,Start_date):
+    view_type = "view_part"
+    header = []
+    data = []
+    Start_date = datetime.strptime(Start_date,'%Y-%m-%d %H:%M:%S')
 
-    form = ViewEditRepairForm(init_data=init_data,
-                              edit_fields=edit_fields,
-                              add_repair=False)
+    init_data={"VIN":VIN,
+               "Customer_id":Customer_id,
+               "Start_date":Start_date}
 
-    view_type = "edit_repair"
-    status = ""
-    css_class = "normal"
-    status = {"status":status,"css_class":css_class}
+    query = f"SELECT * FROM Part WHERE VIN = '{VIN}' AND Customer_id = '{Customer_id}' AND Start_date = '{Start_date}'"
+    data, header = run_query(query)
+    status = "Found parts to review for this repair."
+    css_class = "success"
+    if not data:
+        header = []
+        status = "No parts found for this repair."
+        css_class = "warning"
+    status = {"status": status, "css_class": css_class}
+    return render(request,
+                  'mainlanding/repairs.html',
+                  {'user': os.environ["USER_ROLE"],
+                   "header": header,
+                   "data": data,
+                   "view_type": view_type,
+                   "status":status,
+                   "init_data": init_data
+                   })
+
+def add_part(request,VIN,Customer_id,Start_date):
+    view_type = "add_part"
+    add_part_status = {"status": "", "css_class": ""}
+    existing_part_status = {"status": "", "css_class": ""}
+
+    header = []
+    data = []
+    Start_date = datetime.strptime(Start_date,'%Y-%m-%d %H:%M:%S')
+
+    init_data={"VIN":VIN,
+               "Customer_id":Customer_id,
+               "Start_date":Start_date}
+    lookup_part_data = init_data.copy()
+
+    form = AddPartForm(init_data=init_data)
+
+    data,header,existing_part_status  = part_lookup(lookup_part_data)
 
     if request.method == 'POST':
-        edit_repair_form = ViewEditRepairForm(data=request.POST,
-                                  init_data=init_data,
-                                  edit_fields=edit_fields,
-                                  add_repair=False)
+        form = AddPartForm(data=request.POST,init_data=init_data)
+        if form.is_valid():
+            row = form.extract_data()
+            query = gen_query_add_row("Part",row)
+            status,css_class = insert_row(query,row)
+            add_part_status = {"status": status, "css_class": css_class}
 
-        part_form = AddPartForm()
-        form = {"edit_repair": edit_repair_form, "add_part": part_form}
+            form = AddPartForm(init_data=init_data)
 
-        print("FORM IS VALID: ",edit_repair_form.is_valid())
-        if edit_repair_form.is_valid():
-            print("FORM IS VALID")
-            repairs = edit_repair_form.extract_data()
+            data, header, existing_part_status = part_lookup(lookup_part_data)
+
+    return render(request,
+                  'mainlanding/repairs.html',
+                  {'user':os.environ["USER_ROLE"],
+                   "form":form,
+                   "header":header,
+                   "data":data,
+                   "add_part_status":add_part_status,
+                   "existing_part_status":existing_part_status,
+                   "view_type":view_type,
+                   "init_data":init_data
+                   })
+
+def part_lookup(init_data):
+    where_clause = " AND ".join([f"{k} = '{v}'" for k, v in init_data.items()])
+    query = "SELECT * FROM Part WHERE " + where_clause
+
+    data, header = run_query(query)
+    status = "Found parts to review for this repair."
+    css_class = "success"
+    if not data:
+        header = []
+        status = "No parts found. Add parts for this repair."
+        css_class = "warning"
+    status = {"status": status, "css_class": css_class}
+
+    return data, header, status
+
+def edit_repair(request,VIN,Customer_id,Start_date):
+    row_dict = {"VIN":VIN,
+               "Customer_id":Customer_id,
+               "Start_date":Start_date}
+    edit_allowed = True
+    data, edit_cols, status, css_class = stage_repair_data(row_dict, edit_allowed)
+    status = {"status": status, "css_class": css_class}
+    add_repair = False
+    view_type = "edit_repair"
+
+    form = RepairForm(init_data=data,
+                      edit_fields=edit_cols,
+                      add_repair=add_repair)
+
+    if request.method == 'POST':
+
+        form = RepairForm(data=request.POST,
+                          init_data=data,
+                          edit_fields=edit_cols,
+                          add_repair=add_repair)
+        if form.is_valid():
+            repairs = form.extract_data()
             if repairs is not None:
                 update_fields = repairs["update_fields"]
                 where_fields = repairs["where_fields"]
+
                 query = gen_query_update_row("Repair", update_fields, where_fields)
                 status, css_class = update_row(query)
                 status = {"status": status, "css_class": css_class}
 
-                if status == "success":
-                    view_type = "view_repair"
-                    form = ViewEditRepairForm(data=request.POST,
-                                              init_data=init_data,
-                                              edit_fields=[],
-                                              add_repair=False)
-
-
-    print(status)
-    print(view_type)
     return render(request,
                   'mainlanding/repairs.html',
                   {'user':os.environ["USER_ROLE"],
@@ -607,41 +664,3 @@ def edit_repair(request):
                    "view_type":view_type,
                    })
 
-def add_part(request):
-    # triggered by add part button
-    # returns same forms as before but with status for add parts
-    # Return lookup repair form
-    # view_type: find_repair(no fields or no repairs),
-    #            view_repair(only view no edit - repair is closed),
-    #            edit_repair(any time there are results),
-    #            add_repair(when adding new repair)
-    #form = {edit_repair:form, add_part:form}
-    #
-    data = None
-    header = None
-    if request.method == 'POST':
-        form = AddRepair(request.POST)
-
-        if form.is_valid():
-
-            user_input = form.extract_data()
-
-            query = add_repair(user_input)  # generate query
-            data = insert_row(query)
-            # data = insert_row(query, "user_input")
-            #data, header = run_query(query)  # run query
-            if len(data) == 0:
-                home_status = "No data available"
-            else:
-                home_status = "Results found and displayed below."
-        else:
-            home_status = "Inputs fields need to be corrected."
-
-    else:
-        form = AddRepair()
-
-    return render(request, 'mainlanding/add_repair.html',
-                  {'form': form,
-                   'data': data,
-                  'user':os.environ["USER_ROLE"],
-                   'header': header})

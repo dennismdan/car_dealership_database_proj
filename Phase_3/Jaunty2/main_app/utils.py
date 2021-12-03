@@ -17,7 +17,7 @@ from datetime import datetime
 def gen_query_update_row(table_name: str,
                          update_fields: dict,
                          where_fields: dict ) -> str:
-    set_clause = ", ".join([f"{key} = '{val}'" for key,val in update_fields.items()])
+    set_clause = ", ".join([f"{key} = '{val}'" for key,val in update_fields.items() if val is not None])
     where_clause = " AND ".join([f"{key} = '{val}'" for key, val in where_fields.items()])
 
     query = f"UPDATE {table_name} SET {set_clause} WHERE {where_clause};"
@@ -63,7 +63,7 @@ def stage_repair_data(row_dict, edit_allowed ):
         css_class = "error"
 
     if edit_allowed and results:
-        edit_cols = ["Completion_date", "Total_cost"]
+        edit_cols = ["Completion_date", "Labor_charges","Total_cost"]
     else:
         edit_cols = []
 
@@ -242,14 +242,11 @@ def get_search_vehicle_query(user_input: dict) -> str:
     '''
     :param user_input: dictionary of form {col1:value,col2:value}
     :return:
-
-    TODO: format query per project structure
     '''
 
     query = get_query_from_file("query_vehicle.txt")
 
     vehicle_fields = ["Manufacturer_name", "Year", "VIN", "Vehicle_type", "Model_name"]
-
 
 
     for key, val in user_input.items():

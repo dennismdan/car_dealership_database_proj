@@ -25,6 +25,17 @@
 <button type="submit" onclick="location.href='{% url 'lookup_customer' %}'" name='lookup_customer'>Lookup Customer</button>
 <br>
 <br>
+{% if view_type == "edit_repair" and status.css_class == "success" %}
+<button type="submit"
+        onclick="location.href='{% url 'add_part' form.VIN.value form.Customer_id.value form.Start_date.value %}'"
+        name='repairs'>View and Add Parts</button>
+{% elif view_type == "view_repair" and status.css_class == "success" %}
+<button type="submit"
+        onclick="location.href='{% url 'view_part' form.VIN.value form.Customer_id.value form.Start_date.value %}'"
+        name='repairs'>View Parts</button>
+{% endif %}
+<br>
+<br>
 <!--view_type: find_repair (no fields or no repairs),
                view_repair (only view no edit - repair is closed),
                edit_repair (any time there are results),
@@ -37,36 +48,76 @@
              {{ form.as_p }}
             <input type="submit"  value="Search">
         </form>
-
     {% elif view_type == "view_repair" %}
         <h3> View Repair </h3>
 
-        <form name = "edit_repair" action = "{% url 'edit_repair' %} " method = "POST" >{% csrf_token %}
+        <form name = "view_repair" >{% csrf_token %}
             {{ form.as_p }}
         </form>
-        <p class={{status.css_class}}> Add Repair Status: {{ status.status }} </p>
+        <p class={{status.css_class}}> Repair Status: {{ status.status }} </p>
         <br>
         <br>
-        <button class="done" type="submit" onclick="history.back()">Done</button>
     {% elif view_type == "edit_repair" %}
 
-        <h3> Edit Repair </h3>
+        <h3> Add Parts for Current Repair </h3>
 
-        <form name = "edit_repair" action = "{% url 'edit_repair' %} " method = "POST" >{% csrf_token %}
-            {{ form.edit_repair.as_p }}
-            <input type="submit"  value="Update Report">
+        <form name = "edit_repair"
+              action = "{% url 'edit_repair' form.VIN.value form.Customer_id.value form.Start_date.value %} "
+              method = "POST" >{% csrf_token %}
+            {{ form.as_p }}
+            <input type="submit"  value="Update Repair">
         </form>
+        <p class={{status.css_class}}> Repair Status: {{ status.status }} </p>
 
+    {% elif view_type == "view_part" %}
+
+        <h3> Parts for the Current Repair</h3>
+        <table class="table table-striped table-hover">
+            <tr>
+                {% for head in header %}
+                    <td><b>{{ head }}</b></td>
+                {% endfor %}
+            </tr>
+            {% for row in data %}
+                <tr name='part_view'>
+                {% for cell in row %}
+                    <td> {{ cell }}</td>
+                {% endfor %}
+                </tr>
+            {% endfor %}
+        </table>
+        <br>
+        <p class={{status.css_class}}> Parts Status: {{ status.status }} </p>
+        <br>
+
+    {% elif view_type == "add_part" %}
         <h3> Add Part to Current Repair</h3>
-        <form name = "add_part" action = "{% url 'add_part' %} " method = "POST" >{% csrf_token %}
-             {{ form.add_part.as_p }}
+        <p class={{existing_part_status.css_class}}> Existing Part Status: {{ existing_part_status.status }} </p>
+
+        <table class="table table-striped table-hover">
+            <tr>
+                {% for head in header %}
+                    <td><b>{{ head }}</b></td>
+                {% endfor %}
+            </tr>
+            {% for row in data %}
+                <tr name='part_view'>
+                {% for cell in row %}
+                    <td> {{ cell }}</td>
+                {% endfor %}
+                </tr>
+            {% endfor %}
+        </table>
+
+        <form name = "add_part" action = "{% url 'add_part' init_data.VIN init_data.Customer_id init_data.Start_date %} " method = "POST" >{% csrf_token %}
+             {{ form.as_p }}
             <input type="submit"  value="Add Part">
         </form>
 
-        <p class={{status.css_class}}> Add Repair Status: {{ status.status }} </p>
+        <p class={{add_part_status.css_class}}> Add Part Status: {{ add_part_status.status }} </p>
         <br>
         <br>
-        <button class="done" type="submit" onclick="history.back()">Done</button>
+
     {% elif view_type == "add_repair" %}
         <h3> Add Repair </h3>
         <form name = "add_repair" action = "{% url 'add_repair' %} " method = "POST" >{% csrf_token %}
@@ -76,7 +127,8 @@
     <p class={{status.css_class}}> Add Repair Status: {{ status.status }} </p>
     <br>
     <br>
-    <button class="done" type="submit" onclick="history.back()">Done</button>
+
     {% endif %}
+<button class="done" type="submit" onclick="location.href='{% url 'repairs' %}'">Done</button>
 {% endblock %}
 
