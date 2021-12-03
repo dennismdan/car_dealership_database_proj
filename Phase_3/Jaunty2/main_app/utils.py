@@ -552,7 +552,7 @@ def get_data_for_template_customerdrill(Customer_id:str,query_type:str):
 def repair_by_manutypemodel_two_query(manufacturer_name):
     query = f"SELECT Vehicle_type,Model_name,SUM(Labor_charges) AS All_labor_Costs, \
             SUM(Total_cost) AS Total_Repair_cost, \
-            SUM(Total_cost)) - (SUM(Labor_charges) AS All_Parts_Costs, \
+            (SUM(Total_cost) - (SUM(Labor_charges)) AS All_Parts_Costs, \
             COUNT(Start_date) AS Count_Repairs \
             from(select 'Car' as VT  \
             UNION select 'SUV' as VT \
