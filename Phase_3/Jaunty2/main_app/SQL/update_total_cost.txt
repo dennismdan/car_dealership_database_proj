@@ -1,6 +1,6 @@
 UPDATE REPAIR SET Total_cost = isnull(s.PartsCost,'0') + r.Labor_charges
 from Repair r
-LEFT JOIN (SELECT p.VIN ,p.Customer_id,p.start_date, sum(p.Price) AS PartsCost
+LEFT JOIN (SELECT p.VIN ,p.Customer_id,p.start_date, sum(p.Price*p.Quantity) AS PartsCost
 			FROM Part p group by p.VIN ,p.Customer_id,p.start_date) as s
 			ON r.vin=s.vin and r.Customer_id=s.Customer_id and r.Start_date=s.Start_date
-WHERE
+			WHERE

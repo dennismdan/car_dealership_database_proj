@@ -703,7 +703,7 @@ def close_repair(request,VIN,Customer_id,Start_date):
         form = RepairForm(init_data=data,
                           edit_fields=[],
                           add_repair=False)
-    css_class = "success" if all(css_class,total_cost_status) else "error"
+    css_class = "success" if all([css_class,total_cost_status]) else "error"
     status = {"status": status+total_cost_update_status, "css_class": css_class}
     return render(request,
                   'mainlanding/repairs.html',
